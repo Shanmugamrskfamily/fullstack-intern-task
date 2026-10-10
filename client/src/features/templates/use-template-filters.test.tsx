@@ -14,12 +14,13 @@ describe('useTemplateFilters', () => {
   it('reads valid filters from the URL', () => {
     renderWithProviders(<Probe />, {
       path: '/templates',
-      initialEntry: '/templates?q=%20dash%20&category=blog&sort=newest',
+      initialEntry: '/templates?q=%20dash%20&category=blog&price=free&sort=price_asc',
     });
     expect(readFilters()).toEqual({
       search: 'dash',
       category: 'blog',
-      sort: 'newest',
+      price: 'free',
+      sort: 'price_asc',
       hasActiveFilters: true,
     });
   });
@@ -27,11 +28,12 @@ describe('useTemplateFilters', () => {
   it('falls back to safe defaults for tampered URL values', () => {
     renderWithProviders(<Probe />, {
       path: '/templates',
-      initialEntry: `/templates?category=${encodeURIComponent('{"$gt":""}')}&sort=drop-table&q=${'x'.repeat(200)}`,
+      initialEntry: `/templates?category=${encodeURIComponent('{"$gt":""}')}&sort=drop-table&price=cheap&q=${'x'.repeat(200)}`,
     });
     const filters = readFilters();
     expect(filters.category).toBeNull();
     expect(filters.sort).toBe('popular');
+    expect(filters.price).toBeNull();
     expect(filters.search).toHaveLength(64);
   });
 });

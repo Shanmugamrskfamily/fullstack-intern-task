@@ -8,6 +8,8 @@ import { usePageTitle } from '@/lib/use-page-title';
 import { pluralize } from '@/lib/utils';
 import { CategoryChips } from './CategoryChips';
 import { CATEGORIES } from './categories';
+import { LaunchOfferBanner } from './LaunchOfferBanner';
+import { PriceFilter } from './PriceFilter';
 import { PAGE_SIZE, useCategories, useTemplateList } from './queries';
 import { SearchBar } from './SearchBar';
 import { SortSelect } from './SortSelect';
@@ -17,7 +19,7 @@ import { useTemplateFilters } from './use-template-filters';
 
 export default function TemplatesPage() {
   usePageTitle('Templates');
-  const { filters, hasActiveFilters, setSearch, setCategory, setSort, clearFilters } =
+  const { filters, hasActiveFilters, setSearch, setCategory, setPrice, setSort, clearFilters } =
     useTemplateFilters();
   const list = useTemplateList(filters);
   const categories = useCategories();
@@ -45,16 +47,19 @@ export default function TemplatesPage() {
             Find the template that <span className="text-gradient">ships your next idea.</span>
           </h1>
           <p className="mt-3 max-w-[540px] text-[16px] leading-relaxed text-muted-foreground">
-            {catalogueSize ? `${catalogueSize} hand-picked` : 'Hand-picked'} SaaS templates. Search,
-            filter by category and save your favourites to come back to anytime.
+            {catalogueSize ? `${catalogueSize} hand-picked` : 'Hand-picked'} SaaS templates, free
+            and paid. Search, filter by category or price, save favourites and build your library.
           </p>
         </div>
         <SearchBar value={filters.search} onChange={setSearch} />
       </section>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <LaunchOfferBanner />
+
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
         <CategoryChips value={filters.category} onChange={setCategory} counts={categories.data} />
-        <div className="hidden shrink-0 sm:block">
+        <div className="flex shrink-0 items-center justify-between gap-3 lg:py-2">
+          <PriceFilter value={filters.price} onChange={setPrice} />
           <SortSelect value={filters.sort} onChange={setSort} />
         </div>
       </div>
@@ -69,6 +74,7 @@ export default function TemplatesPage() {
               <b className="text-muted-foreground tabular-nums">
                 {templates.length} of {total}
               </b>{' '}
+              {filters.price && <>{filters.price} </>}
               {total === 1 ? 'template' : 'templates'}
               {categoryName && <> in {categoryName}</>}
               {filters.search && <> matching “{filters.search}”</>}
@@ -80,9 +86,6 @@ export default function TemplatesPage() {
             {pluralize(favorites.data.length, 'template')} in your favourites
           </p>
         )}
-        <div className="shrink-0 sm:hidden">
-          <SortSelect value={filters.sort} onChange={setSort} />
-        </div>
       </div>
 
       <div className="relative">
@@ -114,7 +117,9 @@ export default function TemplatesPage() {
             title={
               filters.search
                 ? `No templates match “${filters.search}”`
-                : 'No templates in this category yet'
+                : filters.price
+                  ? `No ${filters.price} templates in this category yet`
+                  : 'No templates in this category yet'
             }
             description="Try a different keyword, or clear the filters to see every template."
             action={
@@ -130,7 +135,11 @@ export default function TemplatesPage() {
             {templates.map((template, index) => (
               <li key={template.id} className="flex">
                 <div className="flex w-full flex-col [&>article]:flex-1">
-                  <TemplateCard template={template} index={index % PAGE_SIZE} />
+                  <TemplateCard
+                    template={template}
+                    index={index % PAGE_SIZE}
+                    highlight={filters.search}
+                  />
                 </div>
               </li>
             ))}

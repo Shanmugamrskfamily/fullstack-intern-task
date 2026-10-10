@@ -45,7 +45,7 @@ export function FavoriteButton({ template, variant = 'icon', className }: Favori
   if (variant === 'full') {
     return (
       <Button
-        variant={saved ? 'rose' : 'primary'}
+        variant={saved ? 'rose' : 'soft'}
         size="lg"
         aria-pressed={saved}
         onClick={onClick}

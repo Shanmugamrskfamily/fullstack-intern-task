@@ -1,4 +1,4 @@
-import { Cookie, Globe, Heart, LayoutGrid, Mail } from 'lucide-react';
+import { Cookie, Globe, Heart, LayoutGrid, LibraryBig, Mail } from 'lucide-react';
 import { Link } from 'react-router';
 import { BrandLogo } from '@/components/brand/BrandMark';
 import { cn } from '@/lib/utils';
@@ -108,8 +108,8 @@ export function Footer() {
           <BrandLogo size={38} />
         </Link>
         <p className="mt-3 max-w-[44ch] text-[13.5px] leading-relaxed text-muted-foreground">
-          A mini SaaS template store. Browse hand-picked templates, save your favourites and pick up
-          right where you left off.
+          A mini SaaS template store. Browse hand-picked templates, save your favourites and build
+          your own library.
         </p>
         <nav aria-label="Footer" className="mt-4 flex flex-wrap gap-2">
           <Link to="/templates" className={footerLinkClass}>
@@ -117,6 +117,9 @@ export function Footer() {
           </Link>
           <Link to="/favorites" className={footerLinkClass}>
             <Heart className="size-[15px]" aria-hidden="true" /> Favorites
+          </Link>
+          <Link to="/library" className={footerLinkClass}>
+            <LibraryBig className="size-[15px]" aria-hidden="true" /> Library
           </Link>
           <Link to="/cookies" className={footerLinkClass}>
             <Cookie className="size-[15px]" aria-hidden="true" /> Cookie policy

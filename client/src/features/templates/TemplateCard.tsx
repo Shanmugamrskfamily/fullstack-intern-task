@@ -3,11 +3,15 @@ import { ArrowRight, Heart } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FavoriteButton } from '@/features/favorites/FavoriteButton';
+import { useOwnedTemplates } from '@/features/orders/queries';
 import { safeUrl } from '@/lib/security';
 import { cn } from '@/lib/utils';
 import type { Template } from '@/types/api';
 import { categoryColor } from './categories';
+import { DealBadges } from './DealBadges';
 import { formatSaves } from './format';
+import { Highlight } from './Highlight';
+import { PriceTag } from './PriceTag';
 import { prefetchTemplate } from './queries';
 
 interface TemplateCardProps {
@@ -16,10 +20,18 @@ interface TemplateCardProps {
   index?: number;
   /** Route the detail dialog opens under (`/templates` or `/favorites`). */
   basePath?: string;
+  /** Active search, highlighted in the name and description. */
+  highlight?: string;
 }
 
-export function TemplateCard({ template, index = 0, basePath = '/templates' }: TemplateCardProps) {
+export function TemplateCard({
+  template,
+  index = 0,
+  basePath = '/templates',
+  highlight,
+}: TemplateCardProps) {
   const queryClient = useQueryClient();
+  const owned = useOwnedTemplates().has(template.id);
   const location = useLocation();
   const prefetch = () => void prefetchTemplate(queryClient, template.id);
 
@@ -49,23 +61,27 @@ export function TemplateCard({ template, index = 0, basePath = '/templates' }: T
           {template.category}
         </span>
         <FavoriteButton template={template} className="absolute top-2.5 right-2.5 z-10" />
+        <DealBadges template={template} className="absolute bottom-2.5 left-2.5" />
       </div>
 
       <div className="px-1.5 pt-4 pb-0.5">
-        <h3 className="text-[16.5px] font-bold tracking-[-0.01em]">
-          {/* Stretched link: the whole card is clickable, but there is a single link and no nested buttons. */}
-          <Link
-            to={{ pathname: `${basePath}/${template.id}`, search: location.search }}
-            state={{ fromGrid: true }}
-            preventScrollReset
-            data-template-link={template.id}
-            className="outline-none after:absolute after:inset-0 after:rounded-[22px]"
-          >
-            {template.name}
-          </Link>
-        </h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="min-w-0 text-[16.5px] font-bold tracking-[-0.01em]">
+            {/* Stretched link: the whole card is clickable, but there is a single link and no nested buttons. */}
+            <Link
+              to={{ pathname: `${basePath}/${template.id}`, search: location.search }}
+              state={{ fromGrid: true }}
+              preventScrollReset
+              data-template-link={template.id}
+              className="outline-none after:absolute after:inset-0 after:rounded-[22px]"
+            >
+              <Highlight text={template.name} query={highlight} />
+            </Link>
+          </h3>
+          <PriceTag template={template} owned={owned} className="-mt-0.5 shrink-0" />
+        </div>
         <p className="mt-1.5 line-clamp-2 text-[13.8px] leading-relaxed text-muted-foreground">
-          {template.description}
+          <Highlight text={template.description} query={highlight} />
         </p>
       </div>
 

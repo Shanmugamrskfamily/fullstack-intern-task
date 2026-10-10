@@ -1,4 +1,4 @@
-import { ChevronDown, Cookie, Heart, LogOut } from 'lucide-react';
+import { ChevronDown, Cookie, Heart, LibraryBig, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import {
   DropdownMenu,
@@ -66,6 +66,9 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuItem onSelect={() => navigate('/favorites')}>
           <Heart aria-hidden="true" /> My favorites
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate('/library')}>
+          <LibraryBig aria-hidden="true" /> My library
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/cookies')}>
           <Cookie aria-hidden="true" /> Cookie policy

@@ -1,18 +1,22 @@
-import { Check, FileText, Link2, SearchX } from 'lucide-react';
+import { Check, FileText, SearchX } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import { toast } from 'sonner';
 import { ErrorState } from '@/components/feedback/States';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FavoriteButton } from '@/features/favorites/FavoriteButton';
+import { PurchasePanel } from '@/features/orders/PurchasePanel';
 import { ApiError } from '@/lib/api-error';
 import { isObjectId, safeUrl } from '@/lib/security';
 import { usePageTitle } from '@/lib/use-page-title';
 import type { Template } from '@/types/api';
 import { categoryColor } from './categories';
+import { DealBadges } from './DealBadges';
+import { formatMonth, formatPrice, formatSaves } from './format';
 import { useTemplate } from './queries';
-import { formatMonth, formatSaves } from './format';
+import { ShareButton } from './ShareButton';
+import { SimilarTemplates } from './SimilarTemplates';
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
@@ -24,90 +28,87 @@ function Fact({ label, value }: { label: string; value: string }) {
 }
 
 function DetailContent({ template }: { template: Template }) {
-  const copyLink = async () => {
-    const url = `${window.location.origin}/templates/${template.id}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copied', { description: 'Share it with your team.' });
-    } catch {
-      toast.error("Couldn't copy the link", { description: url });
-    }
-  };
-
   return (
-    <div className="grid gap-6 sm:grid-cols-[1.2fr_1fr] sm:gap-8">
-      <div>
-        <div className="soft-inset overflow-hidden rounded-[20px] p-1.5">
-          <img
-            src={safeUrl(template.thumbnail_url)}
-            alt={`Preview of the ${template.name} template`}
-            width={640}
-            height={400}
-            className="aspect-[16/11] w-full rounded-2xl object-cover"
-          />
-        </div>
-        {template.pages.length > 0 && (
-          <ul aria-label="Pages included" className="mt-4 flex flex-wrap gap-2.5">
-            {template.pages.map((page) => (
-              <li
-                key={page}
-                className="soft-raised-sm flex h-8 items-center gap-1.5 rounded-[10px] px-3 text-[12.5px] font-semibold text-muted-foreground"
-              >
-                <FileText className="size-[13px]" aria-hidden="true" /> {page}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="flex flex-col">
-        <span className="soft-pressed inline-flex h-[30px] w-fit items-center gap-2 rounded-full px-3 text-[12.5px] font-bold">
-          <span
-            className="size-2 rounded-full"
-            style={{ backgroundColor: categoryColor(template.category_slug) }}
-            aria-hidden="true"
-          />
-          {template.category}
-        </span>
-        <DialogTitle className="mt-4 pr-12">{template.name}</DialogTitle>
-        <DialogDescription className="mt-2.5">{template.description}</DialogDescription>
-
-        <dl className="my-5 grid grid-cols-3 gap-3">
-          <Fact label="Category" value={template.category} />
-          <Fact label="Saves" value={String(template.favorites_count)} />
-          <Fact label="Added" value={formatMonth(template.created_at)} />
-        </dl>
-
-        {template.features.length > 0 && (
-          <>
-            <h3 className="mb-3 text-[13px] font-bold tracking-[0.04em] text-subtle uppercase">
-              What's inside
-            </h3>
-            <ul className="mb-6 grid gap-2.5">
-              {template.features.map((feature) => (
+    <>
+      <div className="grid gap-6 sm:grid-cols-[1.2fr_1fr] sm:gap-8">
+        <div>
+          <div className="soft-inset relative overflow-hidden rounded-[20px] p-1.5">
+            <img
+              src={safeUrl(template.thumbnail_url)}
+              alt={`Preview of the ${template.name} template`}
+              width={640}
+              height={400}
+              className="aspect-[16/11] w-full rounded-2xl object-cover"
+            />
+            <DealBadges template={template} className="absolute bottom-4 left-4" />
+          </div>
+          {template.pages.length > 0 && (
+            <ul aria-label="Pages included" className="mt-4 flex flex-wrap gap-2.5">
+              {template.pages.map((page) => (
                 <li
-                  key={feature}
-                  className="flex items-center gap-2.5 text-[14px] font-medium text-muted-foreground"
+                  key={page}
+                  className="soft-raised-sm flex h-8 items-center gap-1.5 rounded-[10px] px-3 text-[12.5px] font-semibold text-muted-foreground"
                 >
-                  <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-success-soft text-success">
-                    <Check className="size-[15px]" strokeWidth={2.6} aria-hidden="true" />
-                  </span>
-                  {feature}
+                  <FileText className="size-[13px]" aria-hidden="true" /> {page}
                 </li>
               ))}
             </ul>
-          </>
-        )}
-
-        <div className="mt-auto flex flex-wrap gap-3">
-          <FavoriteButton template={template} variant="full" />
-          <Button size="lg" onClick={() => void copyLink()}>
-            <Link2 className="size-[17px]" aria-hidden="true" /> Copy link
-          </Button>
+          )}
         </div>
-        <p className="mt-3 text-[12.5px] text-subtle">{formatSaves(template.favorites_count)}</p>
+
+        <div className="flex flex-col">
+          <span className="soft-pressed inline-flex h-[30px] w-fit items-center gap-2 rounded-full px-3 text-[12.5px] font-bold">
+            <span
+              className="size-2 rounded-full"
+              style={{ backgroundColor: categoryColor(template.category_slug) }}
+              aria-hidden="true"
+            />
+            {template.category}
+          </span>
+          <DialogTitle className="mt-4 pr-12">{template.name}</DialogTitle>
+          <DialogDescription className="mt-2.5">{template.description}</DialogDescription>
+
+          <dl className="my-5 grid grid-cols-3 gap-3">
+            <Fact label="Price" value={formatPrice(template.price_inr)} />
+            <Fact label="Saves" value={template.favorites_count.toLocaleString('en-IN')} />
+            <Fact label="Added" value={formatMonth(template.created_at)} />
+          </dl>
+
+          {template.features.length > 0 && (
+            <>
+              <h3 className="mb-3 text-[13px] font-bold tracking-[0.04em] text-subtle uppercase">
+                What's inside
+              </h3>
+              <ul className="mb-6 grid gap-2.5">
+                {template.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-center gap-2.5 text-[14px] font-medium text-muted-foreground"
+                  >
+                    <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-success-soft text-success">
+                      <Check className="size-[15px]" strokeWidth={2.6} aria-hidden="true" />
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <div className="mt-auto">
+            <PurchasePanel template={template} />
+            <div className="mt-3 flex flex-wrap gap-3">
+              <FavoriteButton template={template} variant="full" />
+              <ShareButton template={template} />
+            </div>
+            <p className="mt-3 text-[12.5px] text-subtle">
+              {formatSaves(template.favorites_count)}
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+      <SimilarTemplates template={template} />
+    </>
   );
 }
 
@@ -140,6 +141,12 @@ export default function TemplateDetailDialog() {
   const validId = isObjectId(id);
   const { data: template, error, isPending, refetch, isFetching } = useTemplate(id);
   usePageTitle(template?.name ?? 'Template');
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Similar templates swap the dialog in place: start each one from the top.
+  useEffect(() => {
+    contentRef.current?.scrollTo?.({ top: 0 });
+  }, [id]);
 
   const close = () => {
     const state = location.state as { fromGrid?: boolean } | null;
@@ -158,6 +165,7 @@ export default function TemplateDetailDialog() {
   return (
     <Dialog open onOpenChange={(open) => !open && close()}>
       <DialogContent
+        ref={contentRef}
         aria-describedby={undefined}
         onCloseAutoFocus={(event) => {
           // The dialog is opened by a route, not a Radix trigger: return focus to the card link.

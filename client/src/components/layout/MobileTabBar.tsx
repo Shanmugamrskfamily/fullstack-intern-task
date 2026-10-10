@@ -1,4 +1,4 @@
-import { Cookie, Heart, LayoutGrid, LogIn, LogOut, UserRound } from 'lucide-react';
+import { Cookie, Heart, LayoutGrid, LibraryBig, LogIn, LogOut, UserRound } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router';
 import {
   DropdownMenu,
@@ -14,11 +14,11 @@ import { FavoritesBadge } from './Navbar';
 
 const tabClass = (isActive: boolean) =>
   cn(
-    'relative flex w-[84px] flex-col items-center gap-1 rounded-2xl py-2 text-[11px] font-bold transition active:scale-95',
+    'relative flex w-[72px] flex-col items-center gap-1 rounded-2xl py-2 text-[11px] font-bold transition active:scale-95 min-[400px]:w-[80px]',
     isActive ? 'soft-pressed text-primary-text' : 'text-subtle',
   );
 
-/** Phone navigation: three top-level destinations, always icon + label. */
+/** Phone navigation: the top-level destinations plus the account, always icon + label. */
 export function MobileTabBar() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +35,11 @@ export function MobileTabBar() {
       <NavLink to="/favorites" className={({ isActive }) => tabClass(isActive)}>
         <Heart className="size-[21px]" aria-hidden="true" />
         Favorites
-        <FavoritesBadge className="absolute top-1 right-4 h-[18px] min-w-[18px] text-[10.5px]" />
+        <FavoritesBadge className="absolute top-1 right-3 h-[18px] min-w-[18px] text-[10.5px]" />
+      </NavLink>
+      <NavLink to="/library" className={({ isActive }) => tabClass(isActive)}>
+        <LibraryBig className="size-[21px]" aria-hidden="true" />
+        Library
       </NavLink>
       {isAuthenticated ? (
         <DropdownMenu>

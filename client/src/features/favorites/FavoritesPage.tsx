@@ -105,7 +105,12 @@ export default function FavoritesPage() {
           {visible.map((template, index) => (
             <li key={template.id} className="flex">
               <div className="flex w-full flex-col [&>article]:flex-1">
-                <TemplateCard template={template} index={index} basePath="/favorites" />
+                <TemplateCard
+                  template={template}
+                  index={index}
+                  basePath="/favorites"
+                  highlight={search}
+                />
               </div>
             </li>
           ))}

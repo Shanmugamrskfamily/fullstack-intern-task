@@ -24,11 +24,31 @@ export interface Template {
   features: string[];
   pages: string[];
   favorites_count: number;
+  /** Price in rupees before GST. 0 means free. */
+  price_inr: number;
+  /** Launch offer: list price before the discount, or null without an offer. */
+  original_price_inr: number | null;
+  discount_percent: number;
+  is_free: boolean;
   created_at: string;
 }
 
 export interface FavoriteTemplate extends Template {
   favorited_at: string;
+}
+
+/** A demo purchase: no payment provider, prices always computed by the server. */
+export interface Order {
+  id: string;
+  order_number: string;
+  payment: 'demo';
+  price_inr: number;
+  /** Launch-offer saving against the list price. */
+  discount_inr: number;
+  gst_inr: number;
+  total_inr: number;
+  purchased_at: string;
+  template: Template;
 }
 
 export interface Category {
@@ -51,4 +71,6 @@ export interface ApiSuccess<T, M = undefined> {
   message?: string;
 }
 
-export type SortOption = 'popular' | 'newest' | 'name';
+export type SortOption = 'popular' | 'newest' | 'name' | 'price_asc' | 'price_desc';
+
+export type PriceFilter = 'free' | 'paid';
