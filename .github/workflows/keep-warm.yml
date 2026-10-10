@@ -1,0 +1,17 @@
+name: Keep API warm
+
+# The API runs on Render's free tier, which sleeps after 15 minutes without traffic.
+# A light health-check ping keeps it awake for reviewers (the web app also shows a
+# friendly "waking up the server" state if it ever does sleep).
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /api/health
+        run: curl --silent --show-error --max-time 90 --retry 2 https://layora-api.onrender.com/api/health

@@ -11,6 +11,8 @@ coverage/
 .env
 .env.*
 !.env.example
+# Public build-time values only (no secrets)
+!client/.env.production
 
 # Logs
 logs/
