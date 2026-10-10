@@ -158,20 +158,21 @@ npm run dev
 
 Every variable is optional in development. In production `MONGODB_URI` and `JWT_SECRET` are required and the server refuses to start without them.
 
-| Variable                | Default                                          | Description                                                                                          |
-| ----------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`              | `development`                                    | `development`, `test` or `production`.                                                               |
-| `PORT`                  | `5000`                                           | HTTP port.                                                                                           |
-| `MONGODB_URI`           | _(unset: in-memory MongoDB)_                     | MongoDB connection string. Required in production.                                                   |
-| `MONGODB_DB_NAME`       | `layora`                                         | Database name.                                                                                       |
-| `JWT_SECRET`            | _(random per process)_                           | At least 32 characters. Required in production. Without it, sessions reset when the server restarts. |
-| `JWT_EXPIRES_IN`        | `1d`                                             | Session length, such as `15m`, `12h` or `1d`.                                                        |
-| `CLIENT_ORIGINS`        | `http://localhost:5173,http://127.0.0.1:5173`    | Comma-separated browser origins allowed by CORS.                                                     |
-| `CLIENT_ORIGIN_PATTERN` | _(unset)_                                        | Optional regex for extra origins, such as preview deployments.                                       |
-| `PUBLIC_BASE_URL`       | `RENDER_EXTERNAL_URL` or `http://localhost:PORT` | Public URL of the API, used to build absolute `thumbnail_url` values.                                |
-| `SEED_ON_BOOT`          | `true`                                           | Upsert templates and the demo account on startup (safe to repeat).                                   |
-| `LOG_LEVEL`             | `debug` (dev), `info` (prod), `silent` (tests)   | pino log level.                                                                                      |
-| `TRUST_PROXY`           | `1`                                              | Proxy hops to trust, so rate limits see the real client IP behind Render.                            |
+| Variable                | Default                                          | Description                                                                                             |
+| ----------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`              | `development`                                    | `development`, `test` or `production`.                                                                  |
+| `PORT`                  | `5000`                                           | HTTP port.                                                                                              |
+| `MONGODB_URI`           | _(unset: in-memory MongoDB)_                     | MongoDB connection string. Required in production.                                                      |
+| `MONGODB_DB_NAME`       | `layora`                                         | Database name.                                                                                          |
+| `JWT_SECRET`            | _(random per process)_                           | At least 32 characters. Required in production. Without it, sessions reset when the server restarts.    |
+| `JWT_EXPIRES_IN`        | `1d`                                             | Session length, such as `15m`, `12h` or `1d`.                                                           |
+| `CLIENT_ORIGINS`        | `http://localhost:5173,http://127.0.0.1:5173`    | Comma-separated browser origins allowed by CORS.                                                        |
+| `CLIENT_ORIGIN_PATTERN` | _(unset)_                                        | Optional regex for extra origins, such as preview deployments.                                          |
+| `PUBLIC_BASE_URL`       | `RENDER_EXTERNAL_URL` or `http://localhost:PORT` | Public URL of the API, used to build absolute `thumbnail_url` values.                                   |
+| `SEED_ON_BOOT`          | `true`                                           | Upsert templates and the demo account on startup (safe to repeat).                                      |
+| `LOG_LEVEL`             | `debug` (dev), `info` (prod), `silent` (tests)   | pino log level.                                                                                         |
+| `TRUST_PROXY`           | `1`                                              | Proxy hops to trust, so rate limits see the real client IP behind Render.                               |
+| `DNS_SERVERS`           | (unset)                                          | Optional resolvers, e.g. `8.8.8.8,1.1.1.1`, if `querySrv ECONNREFUSED` blocks `mongodb+srv://` locally. |
 
 ### Scripts
 

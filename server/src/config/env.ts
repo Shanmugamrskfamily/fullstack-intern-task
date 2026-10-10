@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { isIP } from 'node:net';
 import { z } from 'zod';
 
 /** Empty strings from .env files count as "not set". */
@@ -38,6 +39,17 @@ const EnvSchema = z
       z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
     ),
     TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(1),
+    // Optional resolvers for networks that refuse the SRV lookups mongodb+srv:// needs.
+    DNS_SERVERS: z.preprocess(
+      (v) => (v === '' ? undefined : v),
+      z
+        .string()
+        .refine(
+          (v) => v.split(',').every((ip) => isIP(ip.trim()) !== 0),
+          'Use comma-separated IP addresses, e.g. 8.8.8.8,1.1.1.1',
+        )
+        .optional(),
+    ),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== 'production') return;
@@ -73,6 +85,10 @@ export const env = {
     .map((origin) => origin.trim().replace(/\/$/, ''))
     .filter(Boolean),
   clientOriginPattern,
+  dnsServers: (raw.DNS_SERVERS ?? '')
+    .split(',')
+    .map((ip) => ip.trim())
+    .filter(Boolean),
   publicBaseUrl: (raw.PUBLIC_BASE_URL ?? raw.RENDER_EXTERNAL_URL ?? `http://localhost:${raw.PORT}`)
     .toString()
     .replace(/\/$/, ''),
