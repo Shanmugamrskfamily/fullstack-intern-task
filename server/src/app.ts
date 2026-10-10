@@ -7,6 +7,7 @@ import { createApiLimiter, passThrough } from './middlewares/rate-limit.js';
 import { corsPolicy, requestLogger, securityHeaders } from './middlewares/security.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { getHealth } from './modules/health/health.controller.js';
+import { templateRouter } from './modules/templates/template.routes.js';
 
 export interface AppOptions {
   /** Rate limiting is on by default and off in tests unless a test opts in. */
@@ -48,6 +49,7 @@ export function createApp({ rateLimits = !env.isTest }: AppOptions = {}) {
   api.use(rateLimits ? createApiLimiter() : passThrough);
   api.get('/health', getHealth);
   api.use('/auth', createAuthRouter({ rateLimits }));
+  api.use('/templates', templateRouter);
   app.use('/api', api);
 
   app.get('/', (_req, res) => {
