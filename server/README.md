@@ -2,7 +2,7 @@
 
 REST API for **Layora**, a Mini SaaS Template Store. Visitors browse, search and filter a catalogue of website and app templates; signed-in users keep a personal list of favorites.
 
-Live API: _added after deployment_
+**Live API:** https://layora-api.onrender.com/api · **Swagger UI:** https://layora-api.onrender.com/api/docs · **Web app:** https://layora-template-store.vercel.app
 
 Interactive docs: `/api/docs` (Swagger UI) · OpenAPI 3.1 document: `/api/openapi.json`
 
