@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import { BCRYPT_ROUNDS } from '../modules/auth/auth.service.js';
+import { addFavorite } from '../modules/favorites/favorite.service.js';
 import { TemplateModel } from '../modules/templates/template.model.js';
 import { UserModel } from '../modules/users/user.model.js';
 import { logger } from '../utils/logger.js';
@@ -55,9 +57,20 @@ export async function seedDemoUser() {
   return { user, created: true };
 }
 
+/** A new demo account starts with a few favorites so the Favorites page is not empty. */
+const DEMO_FAVORITES = ['nimbus-saas-landing', 'cartly-storefront', 'ledger-finance'];
+
+async function seedDemoFavorites(userId: string) {
+  const templates = await TemplateModel.find({ slug: mongoose.trusted({ $in: DEMO_FAVORITES }) })
+    .select('_id')
+    .lean();
+  for (const template of templates) await addFavorite(userId, String(template._id));
+}
+
 export async function ensureSeedData(): Promise<void> {
   const inserted = await seedTemplates();
-  const { created } = await seedDemoUser();
+  const { user, created } = await seedDemoUser();
+  if (created) await seedDemoFavorites(user.id);
   logger.info(
     { templates: SEED_TEMPLATES.length, newTemplates: inserted, demoUserCreated: created },
     'Seed data is up to date',
