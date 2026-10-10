@@ -15,6 +15,8 @@ beforeAll(async () => {
   // so they must exist before the first request.
   await Promise.all([UserModel.init(), TemplateModel.init(), FavoriteModel.init()]);
   await seedTemplates();
+  // Behaviour tests count favorites from zero; sample popularity is covered in seed.test.ts.
+  await TemplateModel.updateMany({}, { $set: { favorites_count: 0 } });
 });
 
 /** Tests stay independent: users and favorites are wiped, templates keep their ids. */

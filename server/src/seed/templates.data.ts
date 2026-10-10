@@ -12,6 +12,12 @@ export interface SeedTemplate {
   pages: string[];
   /** Used for the "Newest" sort, so the seed data has a realistic order. */
   added: string;
+  /**
+   * Sample popularity for the demo catalogue (shown as "N saves" and used by the
+   * "Most popular" sort). Real favorites are added on top; see syncFavoriteCounts().
+   * Two templates start at 0 so the "Be the first to save" state is visible.
+   */
+  sampleSaves: number;
   /** Drives the generated SVG thumbnail. */
   art: { kind: ThumbnailKind; accent: string; backdrop: [string, string] };
 }
@@ -33,6 +39,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Home', 'Features', 'Pricing', 'Blog', 'Contact'],
     added: '2026-10-08',
+    sampleSaves: 482,
     art: { kind: 'landing', accent: '#4F46E5', backdrop: ['#C7D2FE', '#EEF2FF'] },
   },
   {
@@ -49,6 +56,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Waitlist', 'Pricing', 'FAQ', 'Thank you'],
     added: '2026-09-30',
+    sampleSaves: 264,
     art: { kind: 'pricing', accent: '#2563EB', backdrop: ['#BFDBFE', '#EFF6FF'] },
   },
   {
@@ -65,6 +73,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Launch', 'Changelog', 'Demo', 'Press kit'],
     added: '2026-09-18',
+    sampleSaves: 143,
     art: { kind: 'landing', accent: '#DB2777', backdrop: ['#FBCFE8', '#FDF2F8'] },
   },
   {
@@ -81,6 +90,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Overview', 'Reports', 'Customers', 'Settings', 'Login'],
     added: '2026-10-06',
+    sampleSaves: 0,
     art: { kind: 'dashboard', accent: '#0D9488', backdrop: ['#99F6E4', '#F0FDFA'] },
   },
   {
@@ -96,6 +106,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Overview', 'Transactions', 'Budgets', 'Insights', 'Settings'],
     added: '2026-09-22',
+    sampleSaves: 351,
     art: { kind: 'dashboard', accent: '#059669', backdrop: ['#A7F3D0', '#ECFDF5'] },
   },
   {
@@ -112,6 +123,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Pipeline', 'Contacts', 'Deals', 'Team', 'Settings'],
     added: '2026-09-12',
+    sampleSaves: 298,
     art: { kind: 'crm', accent: '#9333EA', backdrop: ['#E9D5FF', '#FAF5FF'] },
   },
   {
@@ -127,6 +139,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Shop', 'Product', 'Cart', 'Checkout', 'Account'],
     added: '2026-10-04',
+    sampleSaves: 436,
     art: { kind: 'ecommerce', accent: '#D97706', backdrop: ['#FDE68A', '#FFFBEB'] },
   },
   {
@@ -138,6 +151,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     features: ['Editorial lookbook sections', 'Size guide drawer', 'Wishlist', 'Shoppable gallery'],
     pages: ['Lookbook', 'Collection', 'Product', 'Wishlist', 'Checkout'],
     added: '2026-09-25',
+    sampleSaves: 329,
     art: { kind: 'portfolio', accent: '#EA580C', backdrop: ['#FED7AA', '#FFF7ED'] },
   },
   {
@@ -149,6 +163,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     features: ['Category aisles', 'Delivery slot picker', 'Quick reorder list', 'Promo banners'],
     pages: ['Home', 'Aisle', 'Product', 'Basket', 'Delivery'],
     added: '2026-09-08',
+    sampleSaves: 221,
     art: { kind: 'ecommerce', accent: '#16A34A', backdrop: ['#BBF7D0', '#F0FDF4'] },
   },
   {
@@ -164,6 +179,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Home', 'Work', 'Case study', 'About', 'Contact'],
     added: '2026-10-02',
+    sampleSaves: 412,
     art: { kind: 'portfolio', accent: '#E11D48', backdrop: ['#FECDD3', '#FFF1F2'] },
   },
   {
@@ -175,6 +191,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     features: ['Full-bleed galleries', 'Client proofing area', 'Booking page', 'Lightbox viewer'],
     pages: ['Home', 'Galleries', 'Proofing', 'Booking', 'About'],
     added: '2026-09-15',
+    sampleSaves: 168,
     art: { kind: 'portfolio', accent: '#0891B2', backdrop: ['#A5F3FC', '#ECFEFF'] },
   },
   {
@@ -186,6 +203,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     features: ['Featured story hero', 'Tag filters', 'Reading-time estimates', 'Author pages'],
     pages: ['Home', 'Article', 'Tags', 'Author', 'Newsletter'],
     added: '2026-09-28',
+    sampleSaves: 187,
     art: { kind: 'blog', accent: '#7C3AED', backdrop: ['#DDD6FE', '#F5F3FF'] },
   },
   {
@@ -197,6 +215,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     features: ['Issue archive', 'Subscriber sign-up', 'Sponsor slots', 'RSS-ready articles'],
     pages: ['Home', 'Archive', 'Issue', 'Subscribe', 'Sponsors'],
     added: '2026-09-05',
+    sampleSaves: 119,
     art: { kind: 'blog', accent: '#CA8A04', backdrop: ['#FEF08A', '#FEFCE8'] },
   },
   {
@@ -212,6 +231,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     ],
     pages: ['Onboarding', 'Home', 'Wallet', 'Profile', 'Paywall'],
     added: '2026-10-07',
+    sampleSaves: 0,
     art: { kind: 'mobile', accent: '#0284C7', backdrop: ['#BAE6FD', '#F0F9FF'] },
   },
   {
@@ -222,6 +242,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     features: ['Workout plans', 'Progress charts', 'Streak rewards', 'Wearable sync screens'],
     pages: ['Today', 'Workouts', 'Progress', 'Rewards', 'Profile'],
     added: '2026-09-20',
+    sampleSaves: 247,
     art: { kind: 'mobile', accent: '#DC2626', backdrop: ['#FECACA', '#FEF2F2'] },
   },
   {
@@ -232,6 +253,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     features: ['Trip itineraries', 'Offline maps screen', 'Shared packing lists', 'Booking wallet'],
     pages: ['Trips', 'Itinerary', 'Map', 'Packing', 'Bookings'],
     added: '2026-09-02',
+    sampleSaves: 305,
     art: { kind: 'mobile', accent: '#65A30D', backdrop: ['#D9F99D', '#F7FEE7'] },
   },
 ];
