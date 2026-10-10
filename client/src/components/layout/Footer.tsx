@@ -32,32 +32,44 @@ export function DeveloperCredit({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'soft-pressed flex flex-wrap items-center gap-4 rounded-[22px] p-3.5',
+        'soft-pressed flex flex-col md:flex-row items-center gap-5 rounded-[22px] p-5 md:p-4 w-full md:w-auto',
         className,
       )}
     >
-      <img
-        src="/brand/sr-mark-light.png"
-        alt="Shanmugam R logo"
-        width={60}
-        height={60}
-        className="size-[60px] rounded-2xl shadow-[4px_4px_10px_var(--shadow-dark),-4px_-4px_10px_var(--shadow-light)] dark:hidden"
-      />
-      <img
-        src="/brand/sr-mark-dark.png"
-        alt="Shanmugam R logo"
-        width={60}
-        height={60}
-        className="hidden size-[60px] rounded-2xl shadow-[4px_4px_10px_var(--shadow-dark),-4px_-4px_10px_var(--shadow-light)] dark:block"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="text-[10.5px] font-extrabold tracking-[0.1em] text-subtle uppercase">
-          Designed &amp; developed by
-        </p>
-        <p className="mt-0.5 text-[17px] font-bold tracking-[-0.01em]">{DEVELOPER.name}</p>
-        <p className="text-[13px] text-muted-foreground">{DEVELOPER.role}</p>
+      {/* Changed to md:w-auto and md:flex-1 so it takes up remaining space correctly on desktop */}
+      <div className="flex w-full flex-col items-center text-center md:w-auto md:flex-1 md:flex-row md:text-left gap-4">
+        <div className="relative size-[60px] flex-shrink-0">
+          <img
+            src="/brand/sr-mark-light.png"
+            alt="Shanmugam R logo"
+            width={60}
+            height={60}
+            className="size-[60px] rounded-2xl shadow-[4px_4px_10px_var(--shadow-dark),-4px_-4px_10px_var(--shadow-light)] dark:hidden"
+          />
+          <img
+            src="/brand/sr-mark-dark.png"
+            alt="Shanmugam R logo"
+            width={60}
+            height={60}
+            className="hidden size-[60px] rounded-2xl shadow-[4px_4px_10px_var(--shadow-dark),-4px_-4px_10px_var(--shadow-light)] dark:block"
+          />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-[10.5px] font-extrabold tracking-[0.1em] text-subtle uppercase">
+            Designed &amp; developed by
+          </p>
+          <p className="mt-0.5 text-[16px] sm:text-[17px] font-bold tracking-[-0.01em]">
+            {DEVELOPER.name}
+          </p>
+          <p className="text-[12px] sm:text-[13px] text-muted-foreground leading-relaxed break-words whitespace-normal">
+            {DEVELOPER.role}
+          </p>
+        </div>
       </div>
-      <div className="flex gap-2">
+
+      {/* Added md:flex-nowrap and flex-shrink-0 to keep icons in a single row on desktop */}
+      <div className="flex flex-wrap md:flex-nowrap gap-2 justify-center w-full md:w-auto flex-shrink-0">
         <a
           className={iconLinkClass}
           href={DEVELOPER.portfolio}
@@ -98,20 +110,21 @@ export function DeveloperCredit({ className }: { className?: string }) {
 }
 
 const footerLinkClass =
-  'soft-raised-sm inline-flex h-10 items-center gap-1.5 rounded-xl px-3.5 text-[13px] font-bold text-muted-foreground transition hover:text-primary-text active:scale-95';
+  'soft-raised-sm inline-flex h-10 items-center justify-center gap-1.5 rounded-xl px-3 sm:px-3.5 text-[12.5px] sm:text-[13px] font-bold text-muted-foreground transition hover:text-primary-text active:scale-95 flex-grow sm:flex-grow-0';
 
 export function Footer() {
   return (
     <footer className="soft-raised mt-14 grid gap-6 rounded-[26px] p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:items-center">
-      <div>
+      <div className="w-full">
         <Link to="/templates" aria-label="Layora home" className="inline-block rounded-[14px]">
           <BrandLogo size={38} />
         </Link>
-        <p className="mt-3 max-w-[44ch] text-[13.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-3 max-w-[44ch] text-[13px] sm:text-[13.5px] leading-relaxed text-muted-foreground">
           A mini SaaS template store. Browse hand-picked templates, save your favourites and build
           your own library.
         </p>
-        <nav aria-label="Footer" className="mt-4 flex flex-wrap gap-2">
+
+        <nav aria-label="Footer" className="mt-4 flex flex-wrap gap-2 w-full">
           <Link to="/templates" className={footerLinkClass}>
             <LayoutGrid className="size-[15px]" aria-hidden="true" /> Templates
           </Link>
@@ -126,10 +139,14 @@ export function Footer() {
           </Link>
         </nav>
       </div>
-      <DeveloperCredit />
-      <div className="flex flex-col gap-2 border-t border-line pt-4 text-[12.5px] text-subtle sm:flex-row sm:justify-between lg:col-span-2">
-        <span>© {new Date().getFullYear()} Layora · Full-stack assessment project</span>
-        <span>React · Express · MongoDB · Tailwind CSS</span>
+
+      <DeveloperCredit className="mt-2 lg:mt-0" />
+
+      <div className="flex flex-col gap-2 border-t border-line pt-4 text-[11.5px] sm:text-[12.5px] text-subtle md:flex-row md:justify-between lg:col-span-2">
+        <span className="text-center md:text-left">
+          © {new Date().getFullYear()} Layora · Full-stack assessment project
+        </span>
+        <span className="text-center md:text-right">React · Express · MongoDB · Tailwind CSS</span>
       </div>
     </footer>
   );
