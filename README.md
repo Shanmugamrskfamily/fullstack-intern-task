@@ -118,18 +118,20 @@ A full-stack template store: browse, search and filter SaaS templates priced in 
 
 ## Architecture
 
+## Architecture
+
 ```mermaid
 flowchart LR
   subgraph Browser
-    UI[React UI<br/>pages + components] --> RQ[TanStack Query cache]
-    RQ --> AX[Axios client<br/>auth + error interceptors]
+    UI["React UI<br/>pages + components"] --> RQ["TanStack Query cache"]
+    RQ --> AX["Axios client<br/>auth + error interceptors"]
   end
-  AX -- HTTPS JSON --> API
-  subgraph API[Express API on Render]
-    MW[helmet · CORS · rate limit · JSON 10 kB] --> V[validate&#40;Zod&#41;]
-    V --> C[controller] --> S[service] --> M[Mongoose model]
+  AX -- "HTTPS JSON" --> API
+  subgraph API["Express API on Render"]
+    MW["helmet · CORS · rate limit · JSON 10 kB"] --> V["validate (Zod)"]
+    V --> C["controller"] --> S["service"] --> M["Mongoose model"]
   end
-  M --> DB[(MongoDB Atlas)]
+  M --> DB[("MongoDB Atlas")]
 ```
 
 - **API:** feature modules (`auth`, `templates`, `favorites`, `orders`), each split into routes → validation → controller → service → model, with serializers as response DTOs and a central error handler. See [server/README.md](server/README.md).
