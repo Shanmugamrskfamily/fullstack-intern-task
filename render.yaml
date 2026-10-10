@@ -1,0 +1,32 @@
+# Render Blueprint for the Layora API (infrastructure as code).
+# Secrets are never stored here: Render generates JWT_SECRET, and MONGODB_URI is entered in the dashboard.
+services:
+  - type: web
+    name: layora-api
+    runtime: node
+    region: singapore
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: cd server && npm ci --include=dev && npm run build
+    startCommand: cd server && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: layora
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: CLIENT_ORIGINS
+        value: https://layora-template-store.vercel.app
+      - key: SEED_ON_BOOT
+        value: 'true'
+      - key: TRUST_PROXY
+        value: '1'
+      - key: LOG_LEVEL
+        value: info
