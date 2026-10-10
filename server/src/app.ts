@@ -6,6 +6,7 @@ import { errorHandler, notFound } from './middlewares/error-handler.js';
 import { createApiLimiter, passThrough } from './middlewares/rate-limit.js';
 import { corsPolicy, requestLogger, securityHeaders } from './middlewares/security.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
+import { favoriteRouter } from './modules/favorites/favorite.routes.js';
 import { getHealth } from './modules/health/health.controller.js';
 import { templateRouter } from './modules/templates/template.routes.js';
 
@@ -50,6 +51,7 @@ export function createApp({ rateLimits = !env.isTest }: AppOptions = {}) {
   api.get('/health', getHealth);
   api.use('/auth', createAuthRouter({ rateLimits }));
   api.use('/templates', templateRouter);
+  api.use('/favorites', favoriteRouter);
   app.use('/api', api);
 
   app.get('/', (_req, res) => {
