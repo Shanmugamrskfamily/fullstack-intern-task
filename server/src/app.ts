@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import compression from 'compression';
 import express, { Router } from 'express';
 import { env } from './config/env.js';
+import { createDocsRouter } from './docs/docs.routes.js';
 import { errorHandler, notFound } from './middlewares/error-handler.js';
 import { createApiLimiter, passThrough } from './middlewares/rate-limit.js';
 import { corsPolicy, requestLogger, securityHeaders } from './middlewares/security.js';
@@ -49,6 +50,7 @@ export function createApp({ rateLimits = !env.isTest }: AppOptions = {}) {
   const api = Router();
   api.use(rateLimits ? createApiLimiter() : passThrough);
   api.get('/health', getHealth);
+  api.use(createDocsRouter());
   api.use('/auth', createAuthRouter({ rateLimits }));
   api.use('/templates', templateRouter);
   api.use('/favorites', favoriteRouter);
