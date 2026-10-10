@@ -2,10 +2,13 @@ import './config/load-env.js';
 import { createApp } from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/db.js';
 import { env } from './config/env.js';
+import { ensureSeedData } from './seed/seed.js';
 import { logger } from './utils/logger.js';
 
 async function main() {
-  await connectDatabase();
+  const { inMemory } = await connectDatabase();
+  // An in-memory database always starts empty, so it is always seeded.
+  if (env.SEED_ON_BOOT || inMemory) await ensureSeedData();
 
   const app = createApp();
   const server = app.listen(env.PORT, () => {
