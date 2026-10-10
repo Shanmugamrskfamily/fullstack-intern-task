@@ -32,7 +32,7 @@ The React front end for **Layora**, a Mini SaaS Template Store.
 | HTTP         | Axios (one instance with auth and error interceptors)                     |
 | Routing      | React Router 7 (data router, lazy-loaded pages)                           |
 | Forms        | React Hook Form + Zod (mirrors the API's validation rules)                |
-| Feedback     | Sonner toasts, Lucide icons, self-hosted Plus Jakarta Sans                |
+| Feedback     | Sonner toasts, Lucide icons, self-hosted Nunito (variable)                |
 | Testing      | Vitest + React Testing Library (jsdom)                                    |
 
 ## Getting started
