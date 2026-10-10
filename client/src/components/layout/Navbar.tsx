@@ -1,4 +1,4 @@
-import { Heart, LayoutGrid } from 'lucide-react';
+import { Heart, LayoutGrid, LibraryBig } from 'lucide-react';
 import { Link, NavLink } from 'react-router';
 import { BrandLogo } from '@/components/brand/BrandMark';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,9 @@ export function Navbar() {
         <NavLink to="/favorites" className={navLinkClass}>
           <Heart className="size-[17px]" aria-hidden="true" /> Favorites
           <FavoritesBadge />
+        </NavLink>
+        <NavLink to="/library" className={navLinkClass}>
+          <LibraryBig className="size-[17px]" aria-hidden="true" /> Library
         </NavLink>
       </nav>
 

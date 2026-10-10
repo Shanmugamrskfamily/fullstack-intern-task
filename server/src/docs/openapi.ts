@@ -1,6 +1,7 @@
 import type { OpenAPIV3_1 } from 'openapi-types';
 import { CATEGORIES } from '../modules/templates/categories.js';
-import { SORT_OPTIONS } from '../modules/templates/template.schemas.js';
+import { GST_RATE, priceBreakdown } from '../modules/orders/order.service.js';
+import { PRICE_FILTERS, SORT_OPTIONS } from '../modules/templates/template.schemas.js';
 import { DEMO_USER } from '../seed/seed.js';
 import { SEED_TEMPLATES } from '../seed/templates.data.js';
 
@@ -71,11 +72,26 @@ const templateExample = {
   category_slug: sampleCategory.slug,
   features: sample.features,
   pages: sample.pages,
-  favorites_count: 12,
+  favorites_count: sample.sampleSaves,
+  price_inr: sample.priceInr,
+  original_price_inr: sample.originalPriceInr ?? null,
+  discount_percent: sample.originalPriceInr
+    ? Math.round((1 - sample.priceInr / sample.originalPriceInr) * 100)
+    : 0,
+  is_free: sample.priceInr === 0,
   created_at: `${sample.added}T09:00:00.000Z`,
 };
 
 const favoriteExample = { ...templateExample, favorited_at: '2026-10-14T10:24:51.000Z' };
+
+const orderExample = {
+  id: '6706b1f4c2a8e93d5f1a7d31',
+  order_number: 'LY-9F3A2C1B',
+  payment: 'demo',
+  ...priceBreakdown(sample.priceInr, sample.originalPriceInr),
+  purchased_at: '2026-10-14T10:30:00.000Z',
+  template: templateExample,
+};
 
 const userExample = {
   id: '6706b1f4c2a8e93d5f1a7c20',
@@ -230,6 +246,10 @@ const schemas: Record<string, Schema> = {
       'features',
       'pages',
       'favorites_count',
+      'price_inr',
+      'original_price_inr',
+      'discount_percent',
+      'is_free',
       'created_at',
     ],
     properties: {
@@ -253,8 +273,28 @@ const schemas: Record<string, Schema> = {
       favorites_count: {
         type: 'integer',
         minimum: 0,
-        description: 'How many users have this template in their favorites.',
+        description:
+          'Saves shown on the card: sample popularity of the demo catalogue plus real favorites from users.',
       },
+      price_inr: {
+        type: 'integer',
+        minimum: 0,
+        description: 'Price in Indian rupees, GST excluded. `0` means free.',
+      },
+      original_price_inr: {
+        type: ['integer', 'null'],
+        minimum: 0,
+        description:
+          'Launch offer: the list price before the discount, or `null` when the template is not on offer.',
+      },
+      discount_percent: {
+        type: 'integer',
+        minimum: 0,
+        maximum: 100,
+        description:
+          'Launch-offer discount against `original_price_inr`, rounded. `0` without an offer.',
+      },
+      is_free: { type: 'boolean', description: '`true` when `price_inr` is 0.' },
       created_at: {
         type: 'string',
         format: 'date-time',
@@ -280,6 +320,37 @@ const schemas: Record<string, Schema> = {
       },
     ],
     examples: [favoriteExample],
+  },
+  Order: {
+    type: 'object',
+    description: `A demo purchase. No payment provider is involved and no card data is collected. Prices come from the server; GST is ${GST_RATE * 100}%.`,
+    required: [
+      'id',
+      'order_number',
+      'payment',
+      'price_inr',
+      'discount_inr',
+      'gst_inr',
+      'total_inr',
+      'purchased_at',
+      'template',
+    ],
+    properties: {
+      id: schemaRef('ObjectId'),
+      order_number: { type: 'string', pattern: '^LY-[A-F0-9]{8}$' },
+      payment: { type: 'string', const: 'demo' },
+      price_inr: { type: 'integer', minimum: 0 },
+      discount_inr: {
+        type: 'integer',
+        minimum: 0,
+        description: 'Launch-offer saving against the list price.',
+      },
+      gst_inr: { type: 'integer', minimum: 0 },
+      total_inr: { type: 'integer', minimum: 0 },
+      purchased_at: { type: 'string', format: 'date-time' },
+      template: schemaRef('Template'),
+    },
+    examples: [orderExample],
   },
   PaginationMeta: {
     type: 'object',
@@ -387,6 +458,19 @@ const schemas: Record<string, Schema> = {
   FavoriteResponse: successEnvelope(schemaRef('FavoriteTemplate'), {
     message: message('Added to favorites'),
   }),
+  OrderListResponse: successEnvelope(
+    { type: 'array', items: schemaRef('Order') },
+    {
+      meta: {
+        type: 'object',
+        required: ['total'],
+        properties: { total: { type: 'integer', minimum: 0 } },
+      },
+    },
+  ),
+  OrderResponse: successEnvelope(schemaRef('Order'), {
+    message: message('Added to your library'),
+  }),
 };
 
 /* ------------------------------------------------------------------------------------ */
@@ -405,6 +489,12 @@ const objectIdParameter = (name: string): OpenAPIV3_1.ParameterObject => ({
 const parameters: Record<string, OpenAPIV3_1.ParameterObject> = {
   TemplateId: objectIdParameter('id'),
   FavoriteTemplateId: objectIdParameter('templateId'),
+  Price: {
+    name: 'price',
+    in: 'query',
+    description: '`free`: only free templates. `paid`: only paid templates.',
+    schema: { type: 'string', enum: [...PRICE_FILTERS] },
+  },
   Search: {
     name: 'search',
     in: 'query',
@@ -427,7 +517,7 @@ const parameters: Record<string, OpenAPIV3_1.ParameterObject> = {
     name: 'sort',
     in: 'query',
     description:
-      '`popular`: most favorited first (ties by name). `newest`: most recently added first. `name`: A to Z.',
+      '`popular`: most saved first (ties by name). `newest`: most recently added first. `name`: A to Z. `price_asc` / `price_desc`: by price.',
     schema: { type: 'string', enum: [...SORT_OPTIONS], default: 'popular' },
   },
   Page: {
@@ -721,7 +811,7 @@ const paths: OpenAPIV3_1.PathsObject = {
       summary: 'Browse and search templates',
       description:
         'Filters combine with AND. Empty values (`?search=`) are ignored; unknown or repeated parameters are rejected.',
-      parameters: ['Search', 'Category', 'Sort', 'Page', 'Limit'].map(parameterRef),
+      parameters: ['Search', 'Category', 'Price', 'Sort', 'Page', 'Limit'].map(parameterRef),
       responses: withCommonErrors({
         '200': {
           description: 'A page of templates.',
@@ -840,6 +930,58 @@ const paths: OpenAPIV3_1.PathsObject = {
       }),
     },
   },
+  '/orders': {
+    get: {
+      tags: ['Orders'],
+      operationId: 'listOrders',
+      summary: 'List the library of the signed-in user (demo purchases)',
+      description: 'Newest first. Private and never cached.',
+      security: BEARER_AUTH,
+      responses: withCommonErrors({
+        '200': {
+          description: 'The orders of the signed-in user.',
+          content: jsonContent(schemaRef('OrderListResponse'), {
+            success: true,
+            data: [orderExample],
+            meta: { total: 1 },
+          }),
+        },
+        '401': responseRef('Unauthorized'),
+      }),
+    },
+  },
+  '/orders/{templateId}': {
+    parameters: [parameterRef('FavoriteTemplateId')],
+    post: {
+      tags: ['Orders'],
+      operationId: 'purchaseTemplate',
+      summary: 'Buy (or claim a free) template: demo checkout',
+      description:
+        'No real payment is taken. The body must be empty: the price, GST and total are always computed on the server. Idempotent: the first call answers 201, repeated calls answer 200 with the existing order.',
+      security: BEARER_AUTH,
+      responses: withCommonErrors({
+        '201': {
+          description: 'Added to the library.',
+          content: jsonContent(schemaRef('OrderResponse'), {
+            success: true,
+            data: orderExample,
+            message: 'Added to your library',
+          }),
+        },
+        '200': {
+          description: 'Already owned. Nothing changed.',
+          content: jsonContent(schemaRef('OrderResponse'), {
+            success: true,
+            data: orderExample,
+            message: 'Already in your library',
+          }),
+        },
+        '400': responseRef('InvalidId'),
+        '401': responseRef('Unauthorized'),
+        '404': responseRef('NotFound'),
+      }),
+    },
+  },
 };
 
 /* ------------------------------------------------------------------------------------ */
@@ -847,7 +989,7 @@ const paths: OpenAPIV3_1.PathsObject = {
 /* ------------------------------------------------------------------------------------ */
 
 const description = `
-REST API of **Layora**, the Mini SaaS Template Store: browse a catalogue of website and app templates, create an account and keep a list of favorites.
+REST API of **Layora**, the Mini SaaS Template Store: browse a catalogue of website and app templates (prices in INR), create an account, keep a list of favorites and build a library through a demo checkout (no real payments).
 
 ### Authentication
 \`POST /auth/register\` and \`POST /auth/login\` return a JWT. Send it as \`Authorization: Bearer <token>\` on the routes marked with a lock. Tokens expire after one day (see \`expires_at\`).
@@ -881,6 +1023,7 @@ export const openApiDocument: OpenAPIV3_1.Document = {
     { name: 'Auth', description: 'Sign up, sign in and the current user.' },
     { name: 'Templates', description: 'The public template catalogue.' },
     { name: 'Favorites', description: 'Templates saved by the signed-in user.' },
+    { name: 'Orders', description: 'Demo checkout and the library of the signed-in user.' },
   ],
   paths,
   components: {

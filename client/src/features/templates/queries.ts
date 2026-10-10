@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query';
 import { type TemplateFilters, queryKeys } from '@/lib/query-keys';
 import { isObjectId } from '@/lib/security';
-import type { FavoriteTemplate, Template } from '@/types/api';
+import type { FavoriteTemplate, Order, Template } from '@/types/api';
 import { type TemplatePage, templatesApi } from './api';
 
 export const PAGE_SIZE = 12;
@@ -44,9 +44,10 @@ export function findCachedTemplate(queryClient: QueryClient, id: string): Templa
       if (match) return match;
     }
   }
-  return queryClient
-    .getQueryData<FavoriteTemplate[]>(queryKeys.favorites)
-    ?.find((t) => t.id === id);
+  return (
+    queryClient.getQueryData<FavoriteTemplate[]>(queryKeys.favorites)?.find((t) => t.id === id) ??
+    queryClient.getQueryData<Order[]>(queryKeys.orders)?.find((o) => o.template.id === id)?.template
+  );
 }
 
 export function useTemplate(id: string) {
@@ -67,7 +68,7 @@ export const prefetchTemplate = (queryClient: QueryClient, id: string) =>
     staleTime: 60_000,
   });
 
-/** Applies an update to a template wherever it is cached (lists, detail, favorites). */
+/** Applies an update to a template wherever it is cached (lists, detail, favorites, library). */
 export function patchCachedTemplate(
   queryClient: QueryClient,
   id: string,
@@ -93,5 +94,10 @@ export function patchCachedTemplate(
   );
   queryClient.setQueryData<FavoriteTemplate[]>(queryKeys.favorites, (list) =>
     list?.map((template) => (template.id === id ? { ...template, ...update(template) } : template)),
+  );
+  queryClient.setQueryData<Order[]>(queryKeys.orders, (list) =>
+    list?.map((order) =>
+      order.template.id === id ? { ...order, template: update(order.template) } : order,
+    ),
   );
 }

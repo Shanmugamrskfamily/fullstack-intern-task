@@ -1,4 +1,4 @@
-import type { SortOrder } from 'mongoose';
+import mongoose, { type SortOrder } from 'mongoose';
 import { ApiError } from '../../utils/api-error.js';
 import { escapeRegex } from '../../utils/text.js';
 import { CATEGORIES } from './categories.js';
@@ -10,6 +10,8 @@ const SORTS: Record<ListTemplatesQuery['sort'], Record<string, SortOrder>> = {
   popular: { favorites_count: -1, name: 1 },
   newest: { created_at: -1, name: 1 },
   name: { name: 1 },
+  price_asc: { price_inr: 1, name: 1 },
+  price_desc: { price_inr: -1, name: 1 },
 };
 
 export interface TemplatePage {
@@ -20,6 +22,9 @@ export interface TemplatePage {
 export async function listTemplates(query: ListTemplatesQuery): Promise<TemplatePage> {
   const filter: Record<string, unknown> = {};
   if (query.category) filter.category = query.category;
+  if (query.price === 'free') filter.price_inr = 0;
+  // `trusted()` marks our own operator, not user input (see sanitizeFilter in db.ts).
+  if (query.price === 'paid') filter.price_inr = mongoose.trusted({ $gt: 0 });
   if (query.search) {
     // Escaped and length-capped by validation: matched literally, no ReDoS.
     const pattern = new RegExp(escapeRegex(query.search), 'i');

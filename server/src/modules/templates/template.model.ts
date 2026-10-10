@@ -15,6 +15,10 @@ export interface Template {
   features: string[];
   pages: string[];
   favorites_count: number;
+  /** Price in Indian rupees, GST excluded. 0 means free. */
+  price_inr: number;
+  /** List price before the launch offer; null when the template is not discounted. */
+  original_price_inr: number | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -29,6 +33,8 @@ const templateSchema = new Schema<Template>(
     features: { type: [String], default: [] },
     pages: { type: [String], default: [] },
     favorites_count: { type: Number, default: 0, min: 0 },
+    price_inr: { type: Number, default: 0, min: 0, max: 100_000 },
+    original_price_inr: { type: Number, default: null, min: 0, max: 100_000 },
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
@@ -39,6 +45,7 @@ const templateSchema = new Schema<Template>(
 // Supports the "Most popular" and "Newest" sorts.
 templateSchema.index({ favorites_count: -1, name: 1 });
 templateSchema.index({ created_at: -1 });
+templateSchema.index({ price_inr: 1, name: 1 });
 
 export type TemplateDocument = HydratedDocument<Template>;
 

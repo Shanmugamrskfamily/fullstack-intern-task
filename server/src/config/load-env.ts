@@ -1,6 +1,7 @@
 // Loads `.env` for local development. Imported first by every entry point.
 // In production the platform (Render) injects variables, so a missing file is fine.
-if (process.env.NODE_ENV !== 'production') {
+// Tests never read it: a local .env may point at a real database.
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   try {
     process.loadEnvFile();
   } catch {

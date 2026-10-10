@@ -19,6 +19,7 @@ import NotFoundPage from '@/pages/NotFoundPage';
 // The catalogue loads with the app; everything else is split into its own chunk.
 const TemplateDetailDialog = lazy(() => import('@/features/templates/TemplateDetailDialog'));
 const FavoritesPage = lazy(() => import('@/features/favorites/FavoritesPage'));
+const LibraryPage = lazy(() => import('@/features/orders/LibraryPage'));
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
 const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'));
 const CookiePolicyPage = lazy(() => import('@/pages/CookiePolicyPage'));
@@ -63,6 +64,11 @@ export const router = createBrowserRouter([
               {
                 path: 'favorites',
                 element: page(FavoritesPage),
+                children: [{ path: ':id', element: page(TemplateDetailDialog, null) }],
+              },
+              {
+                path: 'library',
+                element: page(LibraryPage),
                 children: [{ path: ':id', element: page(TemplateDetailDialog, null) }],
               },
             ],

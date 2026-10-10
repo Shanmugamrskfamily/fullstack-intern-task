@@ -17,6 +17,10 @@ const template: Template = {
   features: [],
   pages: [],
   favorites_count: 2,
+  price_inr: 2499,
+  original_price_inr: null,
+  discount_percent: 0,
+  is_free: false,
   created_at: '2026-10-06T09:00:00.000Z',
 };
 

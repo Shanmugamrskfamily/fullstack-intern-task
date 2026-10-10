@@ -1,8 +1,9 @@
-import type { SortOption } from '@/types/api';
+import type { PriceFilter, SortOption } from '@/types/api';
 
 export interface TemplateFilters {
   search: string;
   category: string | null;
+  price: PriceFilter | null;
   sort: SortOption;
 }
 
@@ -14,8 +15,10 @@ export const queryKeys = {
     lists: () => [...queryKeys.templates.all, 'list'] as const,
     list: (filters: TemplateFilters) => [...queryKeys.templates.lists(), filters] as const,
     categories: () => [...queryKeys.templates.all, 'categories'] as const,
+    similar: (category: string) => [...queryKeys.templates.all, 'similar', category] as const,
     detail: (id: string) => [...queryKeys.templates.all, 'detail', id] as const,
   },
   favorites: ['favorites'] as const,
+  orders: ['orders'] as const,
   health: ['health'] as const,
 };

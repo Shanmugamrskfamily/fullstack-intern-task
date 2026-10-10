@@ -1,3 +1,4 @@
+import { setServers } from 'node:dns';
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger.js';
 import { env } from './env.js';
@@ -31,6 +32,12 @@ export async function connectDatabase(uri = env.MONGODB_URI): Promise<DatabaseCo
     if (!env.isTest) {
       logger.warn('MONGODB_URI is not set: using an in-memory MongoDB. Data resets on restart.');
     }
+  }
+
+  // Some local networks (VPNs, DNS filters) refuse the SRV lookup behind mongodb+srv://.
+  if (env.dnsServers.length > 0) {
+    setServers(env.dnsServers);
+    logger.info({ dnsServers: env.dnsServers }, 'Using custom DNS servers');
   }
 
   await mongoose.connect(target, {

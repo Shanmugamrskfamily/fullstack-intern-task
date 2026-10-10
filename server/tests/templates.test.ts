@@ -54,6 +54,10 @@ describe('GET /api/templates', () => {
           'created_at',
           'description',
           'favorites_count',
+          'price_inr',
+          'original_price_inr',
+          'discount_percent',
+          'is_free',
           'features',
           'id',
           'name',
@@ -233,7 +237,10 @@ describe('GET /api/templates', () => {
       const res = await api().get('/api/templates?sort=price').expect(400);
 
       expect(res.body.error.details).toEqual([
-        { field: 'sort', message: 'Sort must be one of: popular, newest, name' },
+        {
+          field: 'sort',
+          message: 'Sort must be one of: popular, newest, name, price_asc, price_desc',
+        },
       ]);
     });
   });

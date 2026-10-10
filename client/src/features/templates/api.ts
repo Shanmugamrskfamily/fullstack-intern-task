@@ -1,5 +1,12 @@
 import { http } from '@/lib/http';
-import type { ApiSuccess, Category, PageMeta, SortOption, Template } from '@/types/api';
+import type {
+  ApiSuccess,
+  Category,
+  PageMeta,
+  PriceFilter,
+  SortOption,
+  Template,
+} from '@/types/api';
 
 export interface TemplatePage {
   items: Template[];
@@ -9,6 +16,7 @@ export interface TemplatePage {
 export interface ListTemplatesParams {
   search?: string;
   category?: string | null;
+  price?: PriceFilter | null;
   sort?: SortOption;
   page?: number;
   limit?: number;
@@ -16,7 +24,7 @@ export interface ListTemplatesParams {
 
 export const templatesApi = {
   async list(
-    { search, category, sort, page = 1, limit = 12 }: ListTemplatesParams,
+    { search, category, price, sort, page = 1, limit = 12 }: ListTemplatesParams,
     signal?: AbortSignal,
   ): Promise<TemplatePage> {
     const params = {
@@ -25,6 +33,7 @@ export const templatesApi = {
       ...(sort ? { sort } : {}),
       ...(search ? { search } : {}),
       ...(category ? { category } : {}),
+      ...(price ? { price } : {}),
     };
     const { data } = await http.get<ApiSuccess<Template[], PageMeta>>('/templates', {
       params,
