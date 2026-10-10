@@ -24,16 +24,19 @@ Interactive docs: `/api/docs` (Swagger UI) · OpenAPI 3.1 document: `/api/openap
 
 ## Overview
 
-| Area      | What the API does                                                                                                                               |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth      | Sign up and sign in with email and password. Returns a JWT session (1 day). `GET /api/auth/me` restores a session.                              |
-| Templates | 16 seeded templates in 6 categories. Search by name or description, filter by category, sort by popularity, date or name, paginate.             |
-| Favorites | Add, list and remove favorites. Add and remove are idempotent, and each template keeps a `favorites_count` that powers the "Most popular" sort. |
-| Ops       | Health check for the platform, request ids on every response, structured JSON logs, graceful shutdown.                                          |
+| Area      | What the API does                                                                                                                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth      | Sign up and sign in with email and password. Returns a JWT session (1 day). `GET /api/auth/me` restores a session.                                                                                              |
+| Templates | 16 seeded templates in 6 categories, priced in INR (4 free, 12 paid, 9 with a launch offer). Search by name or description, filter by category or Free/Paid, sort by popularity, date, name or price, paginate. |
+| Favorites | Add, list and remove favorites. Add and remove are idempotent, and each template keeps a `favorites_count` that powers the "Most popular" sort.                                                                 |
+| Orders    | Demo checkout: buy a paid template or claim a free one. The server computes the price, launch-offer saving, 18% GST and total; repeat purchases return the same order. `GET /api/orders` is the user's library. |
+| Ops       | Health check for the platform, request ids on every response, structured JSON logs, graceful shutdown.                                                                                                          |
 
 It runs with **zero configuration** in development: without `MONGODB_URI` it starts an in-memory MongoDB, seeds the catalogue and a demo account, and is ready in seconds.
 
-**Demo account:** `demo@example.com` / `Demo@1234` (starts with three favorites).
+**Demo account:** `demo@example.com` / `Demo@1234` (starts with three favorites and two templates in its library).
+
+**Sample popularity:** seeded templates start with sample save counts (100 to 500, two at 0) so the catalogue looks lived-in; real favorites are added on top and the counts stay in sync.
 
 ## Tech stack
 
@@ -79,7 +82,7 @@ flowchart LR
 | **Serializer (DTO)** | Explicit allowlist of the fields sent to clients: `id` instead of `_id`, absolute thumbnail URLs, no internal fields.             | `templates/template.serializer.ts`        |
 | **Error handler**    | Translates every thrown value (Zod, Mongoose, body parser, `ApiError`) into one envelope; unexpected errors become a generic 500. | `middlewares/error-handler.ts`            |
 
-Code is organised by **feature module** (`auth`, `users`, `templates`, `favorites`, `health`): each module owns its routes, schemas, controller, service, model and serializer.
+Code is organised by **feature module** (`auth`, `users`, `templates`, `favorites`, `orders`, `health`): each module owns its routes, schemas, controller, service, model and serializer.
 
 ## Folder structure
 
@@ -108,11 +111,12 @@ server/
 │   │   ├── auth/               # register, login, me
 │   │   ├── favorites/          # list, add, remove
 │   │   ├── health/             # GET /api/health
-│   │   ├── templates/          # list, categories, get by id
+│   │   ├── orders/             # demo checkout and the user's library
+│   │   ├── templates/          # list (search, category, price, sort), categories, get by id
 │   │   └── users/              # User model and public serializer
 │   ├── seed/
 │   │   ├── templates.data.ts   # The 16 templates (also drives thumbnails)
-│   │   ├── seed.ts             # Idempotent seeding: templates, demo user, demo favorites
+│   │   ├── seed.ts             # Idempotent seeding: templates and prices, demo user, favorites, library
 │   │   └── run.ts              # npm run seed
 │   ├── types/express.d.ts      # req.valid and req.user typings
 │   └── utils/                  # ApiError, JWT helpers, logger, text cleaning, ObjectId checks
@@ -205,6 +209,8 @@ Base path: `/api`. The complete, interactive reference with schemas and examples
 | `GET`    | `/favorites`             | Bearer | `200` `FavoriteTemplate[]` (newest first) with `meta { total }`    | `401`                                     |
 | `POST`   | `/favorites/:templateId` | Bearer | `201` added, `200` already a favorite                              | `400`, `401`, `404`                       |
 | `DELETE` | `/favorites/:templateId` | Bearer | `204` (also when it was not a favorite)                            | `400`, `401`                              |
+| `GET`    | `/orders`                | Bearer | `200` `Order[]` (newest first) with `meta { total }`               | `401`                                     |
+| `POST`   | `/orders/:templateId`    | Bearer | `201` added to the library, `200` already owned (same order)       | `400` (any body), `401`, `404`            |
 | `GET`    | `/openapi.json`          | –      | `200` OpenAPI 3.1 document                                         | –                                         |
 | `GET`    | `/docs`                  | –      | Swagger UI                                                         | –                                         |
 
@@ -216,7 +222,8 @@ Every route can also answer `429` (rate limit) and `500`. Thumbnails are served 
 | ---------- | ---------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------- |
 | `search`   | Text, up to 64 characters                                                    | –         | Case-insensitive match on name or description. Matched literally, so `(.*` is just text. |
 | `category` | `landing-page`, `dashboard`, `e-commerce`, `portfolio`, `blog`, `mobile-app` | –         | The display name (`Landing Page`) also works, in any letter case.                        |
-| `sort`     | `popular`, `newest`, `name`                                                  | `popular` | `popular`: most favorited first, ties by name.                                           |
+| `price`    | `free`, `paid`                                                               | –         | Free templates have `price_inr: 0`.                                                      |
+| `sort`     | `popular`, `newest`, `name`, `price_asc`, `price_desc`                       | `popular` | `popular`: most saved first, ties by name. Price sorts use the price charged.            |
 | `page`     | 1 to 1000                                                                    | `1`       |                                                                                          |
 | `limit`    | 1 to 50                                                                      | `50`      |                                                                                          |
 
@@ -235,12 +242,34 @@ Empty values (`?search=`) are ignored. Unknown parameters and repeated parameter
   "category_slug": "landing-page",
   "features": ["Hero with product mockup and two calls to action", "Feature grid with icon cards"],
   "pages": ["Home", "Features", "Pricing", "Blog", "Contact"],
-  "favorites_count": 12,
+  "favorites_count": 482,
+  "price_inr": 1499,
+  "original_price_inr": 2499,
+  "discount_percent": 40,
+  "is_free": false,
   "created_at": "2026-10-08T09:00:00.000Z"
 }
 ```
 
-A `FavoriteTemplate` is the same object plus `favorited_at`.
+`price_inr` is the price charged, before GST (`0` means free). `original_price_inr` is the list price (M.R.P.) when the template is on a launch offer, otherwise `null`. A `FavoriteTemplate` is the same object plus `favorited_at`.
+
+### An order (demo checkout)
+
+```json
+{
+  "id": "6706b1f4c2a8e93d5f1a7d31",
+  "order_number": "LY-9F3A2C1B",
+  "payment": "demo",
+  "price_inr": 1499,
+  "discount_inr": 1000,
+  "gst_inr": 270,
+  "total_inr": 1769,
+  "purchased_at": "2026-10-14T10:30:00.000Z",
+  "template": { "id": "6706b1f4c2a8e93d5f1a7b11", "name": "Nimbus SaaS Landing", "...": "..." }
+}
+```
+
+No payment provider is involved and no card data is ever received. GST (18%) is charged on the discounted price.
 
 ### Quick try with curl
 
@@ -255,6 +284,13 @@ curl -s "http://localhost:5000/api/templates?category=dashboard&limit=5"
 
 # The demo account's favorites
 curl -s http://localhost:5000/api/favorites -H "Authorization: Bearer $TOKEN"
+
+# Free templates, and paid ones cheapest first
+curl -s "http://localhost:5000/api/templates?price=free"
+curl -s "http://localhost:5000/api/templates?price=paid&sort=price_asc"
+
+# The demo account's library (demo purchases)
+curl -s http://localhost:5000/api/orders -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Responses and errors
@@ -300,18 +336,19 @@ Every JSON response uses one envelope, and all field names are snake_case.
 
 Every input is validated on the server with a **strict** Zod schema: unknown keys are rejected rather than ignored, which also blocks mass assignment (`role`, `_id`, `password_hash`).
 
-| Input                 | Rules                                                                                                                                                                                                             |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| JSON body             | `application/json` only, 10 kB limit, objects and arrays only (`strict`), malformed JSON is a clean `400`.                                                                                                        |
-| `name`                | `cleanText()` (Unicode NFC, control and zero-width characters removed, whitespace collapsed, trimmed), 2 to 50 characters, letters from any script plus space `.` `'` `-`. Markup such as `<script>` cannot pass. |
-| `email`               | Must be a string (operator objects like `{ "$gt": "" }` are rejected), trimmed, lowercased, at most 254 characters, valid format. Uniqueness is case-insensitive.                                                 |
-| `password`            | Never trimmed or altered. 8 characters to 72 bytes (bcrypt's limit, measured in UTF-8 bytes), with lowercase, uppercase and a number.                                                                             |
-| `search`              | One string, cleaned, at most 64 characters, **regex-escaped** before use: matched literally, so no regex injection or ReDoS.                                                                                      |
-| `category`, `sort`    | Allowlists.                                                                                                                                                                                                       |
-| `page`, `limit`       | Bounded integers (1 to 1000, 1 to 50).                                                                                                                                                                            |
-| `:id`, `:templateId`  | Must be a 24-character hex ObjectId before any database call.                                                                                                                                                     |
-| Query string          | Express's `simple` parser: `?search[$ne]=x` never becomes an object, and repeated keys are rejected.                                                                                                              |
-| `X-Request-Id` header | Reused only if it matches `^[\w-]{8,64}$`, otherwise replaced with a UUID (no log injection).                                                                                                                     |
+| Input                       | Rules                                                                                                                                                                                                             |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| JSON body                   | `application/json` only, 10 kB limit, objects and arrays only (`strict`), malformed JSON is a clean `400`.                                                                                                        |
+| `name`                      | `cleanText()` (Unicode NFC, control and zero-width characters removed, whitespace collapsed, trimmed), 2 to 50 characters, letters from any script plus space `.` `'` `-`. Markup such as `<script>` cannot pass. |
+| `email`                     | Must be a string (operator objects like `{ "$gt": "" }` are rejected), trimmed, lowercased, at most 254 characters, valid format. Uniqueness is case-insensitive.                                                 |
+| `password`                  | Never trimmed or altered. 8 characters to 72 bytes (bcrypt's limit, measured in UTF-8 bytes), with lowercase, uppercase and a number.                                                                             |
+| `search`                    | One string, cleaned, at most 64 characters, **regex-escaped** before use: matched literally, so no regex injection or ReDoS.                                                                                      |
+| `category`, `price`, `sort` | Allowlists.                                                                                                                                                                                                       |
+| `page`, `limit`             | Bounded integers (1 to 1000, 1 to 50).                                                                                                                                                                            |
+| Checkout body               | Must be empty (`{}` at most): a client can never send a price, discount or total.                                                                                                                                 |
+| `:id`, `:templateId`        | Must be a 24-character hex ObjectId before any database call.                                                                                                                                                     |
+| Query string                | Express's `simple` parser: `?search[$ne]=x` never becomes an object, and repeated keys are rejected.                                                                                                              |
+| `X-Request-Id` header       | Reused only if it matches `^[\w-]{8,64}$`, otherwise replaced with a UUID (no log injection).                                                                                                                     |
 
 ### Database
 
@@ -370,7 +407,7 @@ npm run test:watch   # watch mode
 
 The suite runs **real HTTP requests** (Supertest) against `createApp()` and a **real MongoDB**: each test file gets its own in-memory MongoDB, seeded with the template catalogue, and users and favorites are reset after every test. Tests never touch a configured database, even if `MONGODB_URI` is exported. Nothing is mocked except one spy that simulates a database outage for the health check.
 
-194 tests in 6 files:
+214 tests in 9 files:
 
 | File                | Tests | Covers                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -379,7 +416,10 @@ The suite runs **real HTTP requests** (Supertest) against `createApp()` and a **
 | `templates.test.ts` |    53 | DTO shape and absolute thumbnail URLs, search (case, whitespace, regex metacharacters, 64-character cap), category by slug or label, repeated keys, every sort order (including popularity after favoriting), pagination maths and bounds, categories, lookup by id.                                                                                                                                                                                  |
 | `favorites.test.ts` |    21 | Auth required, per-user lists newest first, idempotent add under concurrency, idempotent remove, `favorites_count` bookkeeping, removed templates, `400` and `404` cases.                                                                                                                                                                                                                                                                             |
 | `security.test.ts`  |    52 | Tampered, foreign-secret, expired, unsigned (`alg: none`), wrong algorithm, issuer and audience tokens; malformed headers; password never returned; operator objects and nested query keys; mass assignment and prototype pollution; `413` and `INVALID_JSON`; security headers; request ids; CORS allow and deny, preflight; thumbnail headers and path traversal; the login brute-force limiter (`429` on the 11th failure, successes not counted). |
-| `docs.test.ts`      |    18 | `/api/openapi.json` and Swagger UI (same-origin scripts only), every route documented with success, `429` and `500` responses, bearer auth on exactly the protected routes, all `$ref`s resolve, and the documented schemas match real responses.                                                                                                                                                                                                     |
+| `pricing.test.ts`   |     6 | Price fields on every template, Free/Paid filters (also combined with a category), both price sorts, launch offers only where the list price is really higher (max 40%), unknown filters and injection attempts rejected.                                                                                                                                                                                                                             |
+| `orders.test.ts`    |     9 | Auth required, server-side price with saving and 18% GST, free claims at ₹0, idempotent and racing purchases (one order), a client-sent price rejected, `400` and `404`, per-user libraries newest first.                                                                                                                                                                                                                                             |
+| `seed.test.ts`      |     3 | Sample popularity (100 to 500, two templates at 0), counts kept in sync with real favorites, re-seeding is idempotent.                                                                                                                                                                                                                                                                                                                                |
+| `docs.test.ts`      |    20 | `/api/openapi.json` and Swagger UI (same-origin scripts only), every route documented with success, `429` and `500` responses, bearer auth on exactly the protected routes, all `$ref`s resolve, and the documented schemas (including `Order` and the price filter) match real responses.                                                                                                                                                            |
 
 A full run takes about 40 seconds locally; most of it is bcrypt at cost 12, kept on purpose so tests exercise the real hashing.
 

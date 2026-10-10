@@ -76,8 +76,10 @@ src/
 │   └── feedback/       CookieNotice, ServerWakeBanner, OfflineBanner, empty/error states
 ├── features/
 │   ├── auth/           AuthProvider, route guards, login/register pages, schemas, guest intent
-│   ├── templates/      catalogue page, card, search, chips, sort, detail dialog, queries
+│   ├── templates/      catalogue, card, search + highlight, chips, Free/Paid filter, sort,
+│   │                   price tags, deal badges, offer banner, detail dialog, similar, share
 │   ├── favorites/      favorites page, favourite button, optimistic mutation
+│   ├── orders/         demo checkout panel, My Library page, orders API and queries
 │   └── theme/          ThemeProvider (light default, persisted)
 ├── lib/                http client, api errors, security helpers, storage, query keys, utils
 ├── pages/              cookie policy, 404
@@ -89,9 +91,10 @@ src/
 
 | Path                  | Access    | Notes                                                                                              |
 | --------------------- | --------- | -------------------------------------------------------------------------------------------------- |
-| `/templates`          | public    | Catalogue. `?q=`, `?category=`, `?sort=` live in the URL                                           |
+| `/templates`          | public    | Catalogue. `?q=`, `?category=`, `?price=`, `?sort=` live in the URL                                |
 | `/templates/:id`      | public    | Detail dialog over the grid; deep-linkable                                                         |
 | `/favorites`          | signed in | The user's shelf; `/favorites/:id` opens the dialog over it                                        |
+| `/library`            | signed in | Templates the user owns (demo purchases); `/library/:id` opens the dialog over it                  |
 | `/login`, `/register` | guests    | `?next=` returns the user afterwards; `?intent=favorite:<id>` saves a template right after sign-in |
 | `/cookies`            | public    | Cookie and storage policy                                                                          |
 | `*`                   | public    | Friendly 404                                                                                       |
@@ -102,6 +105,7 @@ src/
 - **Catalogue:** `useInfiniteQuery` with 12 templates per page and **Load more**; previous results stay visible while new filters load (`keepPreviousData`).
 - **Details:** prefetched on card hover or focus, and seeded from the list cache, so the dialog opens instantly.
 - **Favorites:** a cached list; card hearts read a memoised `Set` of ids via `select`.
+- **Orders:** the library list doubles as an "owned" lookup (`select` into a `Map`), so cards and the dialog show **Owned** instantly; a purchase updates the cache and then refetches.
 - **Optimistic toggle:** the heart, the counts and the favourites list update instantly, roll back with an error toast if the request fails, and removal shows an **Undo** toast. Mutations for the same template run one at a time (`scope`), so rapid taps never race.
 - **Session:** the token is read on load (expired tokens are discarded), the profile loads from `GET /auth/me`, the app signs out automatically when the token expires, any 401 ends the session with a "Session expired" toast, and signing in or out syncs across tabs.
 - **Cold starts:** `ServerWakeBanner` pings `/api/health`; if it is slow it explains that the free-tier API is waking up, retries with backoff, and refetches anything that failed.
@@ -134,7 +138,9 @@ The brand mark is an L-shaped layout grid with a rose "favourite" tile; the load
 
 - **Light by default.** The theme choice is saved and applied before first paint by `public/theme-init.js` (no flash), and synced across tabs.
 - **Cookie notice:** appears gently 1.2 s after load, never blocks or steals focus, is remembered for 12 months, and steps aside while a dialog is open.
-- **Guest intent:** tapping ♥ while signed out leads to sign-in and saves the template afterwards.
+- **Guest intent:** tapping ♥ while signed out leads to sign-in and saves the template afterwards. Pressing **Buy** as a guest leads to sign-in and back to the same template, without buying anything automatically.
+- **Store:** INR prices (`Intl.NumberFormat('en-IN')`, so ₹1,00,000 groups the Indian way), struck-through M.R.P., **% OFF** and **Bestseller** badges and a gradient offer banner that read the same in light and dark mode. The demo checkout shows the M.R.P., the launch-offer saving, 18% GST and the total before confirming, and keeps keyboard focus on the current step.
+- **Discovery:** search matches are highlighted (plain text split, never HTML), the detail dialog suggests similar templates, and **Share** opens the native share sheet on phones (copy link on desktop).
 - **States:** skeleton cards with the exact card geometry, empty states with next steps, error states with retry, offline banner, error boundary, 404.
 - **Navigation:** top bar on tablet and desktop; floating bottom tab bar on phones; logout lives in the account menu, separated from navigation.
 - **Motion:** 150–300 ms transitions on `transform` and `opacity` only; staggered card entrance; everything respects `prefers-reduced-motion`.
@@ -148,14 +154,15 @@ Skip link · focus moves to the page heading after navigation · visible focus r
 
 - **No raw HTML:** React escapes output, and ESLint forbids `dangerouslySetInnerHTML`.
 - **Open-redirect guard:** `?next=` only accepts same-site paths (`lib/security.ts`).
-- **Untrusted URL params:** search is cleaned and clamped to 64 characters, category and sort are validated against allowlists, ids are checked as ObjectIds.
+- **Untrusted URL params:** search is cleaned and clamped to 64 characters, category, price and sort are validated against allowlists, ids are checked as ObjectIds.
 - **`safeUrl()`:** only `http(s)` image URLs are rendered.
 - **Strict CSP** in `vercel.json`: `script-src 'self'` (the theme script is an external file, not inline), `connect-src` and `img-src` limited to this site and the API, `frame-ancestors 'none'`; plus HSTS, `nosniff`, Referrer-Policy and Permissions-Policy.
+- **Checkout:** the client never sends a price; the order summary is a preview and the server computes the real amounts.
 - **Storage:** the JWT is kept in `localStorage` as the task requires; it is cleared on logout, expiry or any 401.
 
 ## Performance
 
-Route-level code splitting for the dialog, favourites, auth and cookie pages · vendor chunks (`react`, `data`, `ui`) · self-hosted variable font · SVG thumbnails with fixed aspect ratio (no layout shift) and lazy loading below the fold · immutable caching for hashed assets.
+Route-level code splitting for the dialog, favourites, library, auth and cookie pages · vendor chunks (`react`, `data`, `ui`) · self-hosted variable font · SVG thumbnails with fixed aspect ratio (no layout shift) and lazy loading below the fold · immutable caching for hashed assets.
 
 ## Testing
 
@@ -163,7 +170,7 @@ Route-level code splitting for the dialog, favourites, auth and cookie pages · 
 npm test
 ```
 
-24 tests across 7 files: open-redirect guard and input cleaning, URL filter fallbacks, route guards, guest favourite intent, optimistic favourite removal, login validation, normalisation and error mapping, theme persistence, cookie notice timing and memory.
+37 tests across 10 files: open-redirect guard and input cleaning, URL filter fallbacks (including price), route guards, guest favourite intent, optimistic favourite removal, the demo checkout (guest redirect, order summary with saving and 18% GST, focus handling, free claims, owned state), INR formatting and GST maths, search highlighting, login validation, normalisation and error mapping, theme persistence, cookie notice timing and memory.
 
 ## Deployment (Vercel)
 
