@@ -37,6 +37,7 @@ export async function seedTemplates(): Promise<number> {
             features: t.features,
             pages: t.pages,
             price_inr: t.priceInr,
+            original_price_inr: t.originalPriceInr ?? null,
             updated_at: now,
           },
           $setOnInsert: {

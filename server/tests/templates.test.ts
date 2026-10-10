@@ -55,6 +55,8 @@ describe('GET /api/templates', () => {
           'description',
           'favorites_count',
           'price_inr',
+          'original_price_inr',
+          'discount_percent',
           'is_free',
           'features',
           'id',

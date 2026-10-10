@@ -4,6 +4,8 @@ import { api } from './helpers.js';
 interface Row {
   slug: string;
   price_inr: number;
+  original_price_inr: number | null;
+  discount_percent: number;
   is_free: boolean;
 }
 
@@ -42,6 +44,24 @@ describe('template pricing', () => {
     expect(asc).toEqual([...asc].sort((a, b) => a - b));
     expect(desc).toEqual([...desc].sort((a, b) => b - a));
     expect(desc[0]).toBe(2999);
+  });
+
+  it('shows launch offers only where the list price is really higher', async () => {
+    const { data } = await list('limit=50');
+    const onOffer = data.filter((t) => t.original_price_inr !== null);
+
+    expect(onOffer.length).toBeGreaterThan(0);
+    for (const t of data) {
+      if (t.original_price_inr === null) {
+        expect(t.discount_percent).toBe(0);
+        continue;
+      }
+      expect(t.original_price_inr).toBeGreaterThan(t.price_inr);
+      expect(t.discount_percent).toBe(Math.round((1 - t.price_inr / t.original_price_inr) * 100));
+    }
+    // The store banner promises "up to 40% off": keep the data honest.
+    expect(Math.max(...data.map((t) => t.discount_percent))).toBe(40);
+    expect(data.filter((t) => t.is_free).every((t) => t.original_price_inr === null)).toBe(true);
   });
 
   it('rejects unknown price filters and injection attempts', async () => {

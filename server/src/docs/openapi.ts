@@ -74,6 +74,10 @@ const templateExample = {
   pages: sample.pages,
   favorites_count: sample.sampleSaves,
   price_inr: sample.priceInr,
+  original_price_inr: sample.originalPriceInr ?? null,
+  discount_percent: sample.originalPriceInr
+    ? Math.round((1 - sample.priceInr / sample.originalPriceInr) * 100)
+    : 0,
   is_free: sample.priceInr === 0,
   created_at: `${sample.added}T09:00:00.000Z`,
 };
@@ -84,7 +88,7 @@ const orderExample = {
   id: '6706b1f4c2a8e93d5f1a7d31',
   order_number: 'LY-9F3A2C1B',
   payment: 'demo',
-  ...priceBreakdown(sample.priceInr),
+  ...priceBreakdown(sample.priceInr, sample.originalPriceInr),
   purchased_at: '2026-10-14T10:30:00.000Z',
   template: templateExample,
 };
@@ -243,6 +247,8 @@ const schemas: Record<string, Schema> = {
       'pages',
       'favorites_count',
       'price_inr',
+      'original_price_inr',
+      'discount_percent',
       'is_free',
       'created_at',
     ],
@@ -274,6 +280,19 @@ const schemas: Record<string, Schema> = {
         type: 'integer',
         minimum: 0,
         description: 'Price in Indian rupees, GST excluded. `0` means free.',
+      },
+      original_price_inr: {
+        type: ['integer', 'null'],
+        minimum: 0,
+        description:
+          'Launch offer: the list price before the discount, or `null` when the template is not on offer.',
+      },
+      discount_percent: {
+        type: 'integer',
+        minimum: 0,
+        maximum: 100,
+        description:
+          'Launch-offer discount against `original_price_inr`, rounded. `0` without an offer.',
       },
       is_free: { type: 'boolean', description: '`true` when `price_inr` is 0.' },
       created_at: {
@@ -310,6 +329,7 @@ const schemas: Record<string, Schema> = {
       'order_number',
       'payment',
       'price_inr',
+      'discount_inr',
       'gst_inr',
       'total_inr',
       'purchased_at',
@@ -320,6 +340,11 @@ const schemas: Record<string, Schema> = {
       order_number: { type: 'string', pattern: '^LY-[A-F0-9]{8}$' },
       payment: { type: 'string', const: 'demo' },
       price_inr: { type: 'integer', minimum: 0 },
+      discount_inr: {
+        type: 'integer',
+        minimum: 0,
+        description: 'Launch-offer saving against the list price.',
+      },
       gst_inr: { type: 'integer', minimum: 0 },
       total_inr: { type: 'integer', minimum: 0 },
       purchased_at: { type: 'string', format: 'date-time' },

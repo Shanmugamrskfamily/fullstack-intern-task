@@ -20,6 +20,8 @@ export interface SeedTemplate {
   sampleSaves: number;
   /** Price in Indian rupees (whole rupees, GST excluded). 0 means free. */
   priceInr: number;
+  /** Launch offer: the list price before the discount. Omitted when there is no offer. */
+  originalPriceInr?: number;
   /** Drives the generated SVG thumbnail. */
   art: { kind: ThumbnailKind; accent: string; backdrop: [string, string] };
 }
@@ -43,6 +45,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-10-08',
     sampleSaves: 482,
     priceInr: 1499,
+    originalPriceInr: 2499,
     art: { kind: 'landing', accent: '#4F46E5', backdrop: ['#C7D2FE', '#EEF2FF'] },
   },
   {
@@ -79,6 +82,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-09-18',
     sampleSaves: 143,
     priceInr: 999,
+    originalPriceInr: 1499,
     art: { kind: 'landing', accent: '#DB2777', backdrop: ['#FBCFE8', '#FDF2F8'] },
   },
   {
@@ -97,6 +101,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-10-06',
     sampleSaves: 0,
     priceInr: 2499,
+    originalPriceInr: 3999,
     art: { kind: 'dashboard', accent: '#0D9488', backdrop: ['#99F6E4', '#F0FDFA'] },
   },
   {
@@ -132,6 +137,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-09-12',
     sampleSaves: 298,
     priceInr: 2999,
+    originalPriceInr: 4999,
     art: { kind: 'crm', accent: '#9333EA', backdrop: ['#E9D5FF', '#FAF5FF'] },
   },
   {
@@ -149,6 +155,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-10-04',
     sampleSaves: 436,
     priceInr: 1799,
+    originalPriceInr: 2999,
     art: { kind: 'ecommerce', accent: '#D97706', backdrop: ['#FDE68A', '#FFFBEB'] },
   },
   {
@@ -175,6 +182,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-09-08',
     sampleSaves: 221,
     priceInr: 1499,
+    originalPriceInr: 1999,
     art: { kind: 'ecommerce', accent: '#16A34A', backdrop: ['#BBF7D0', '#F0FDF4'] },
   },
   {
@@ -192,6 +200,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-10-02',
     sampleSaves: 412,
     priceInr: 799,
+    originalPriceInr: 1299,
     art: { kind: 'portfolio', accent: '#E11D48', backdrop: ['#FECDD3', '#FFF1F2'] },
   },
   {
@@ -205,6 +214,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-09-15',
     sampleSaves: 168,
     priceInr: 699,
+    originalPriceInr: 999,
     art: { kind: 'portfolio', accent: '#0891B2', backdrop: ['#A5F3FC', '#ECFEFF'] },
   },
   {
@@ -272,6 +282,7 @@ export const SEED_TEMPLATES: SeedTemplate[] = [
     added: '2026-09-02',
     sampleSaves: 305,
     priceInr: 1399,
+    originalPriceInr: 2199,
     art: { kind: 'mobile', accent: '#65A30D', backdrop: ['#D9F99D', '#F7FEE7'] },
   },
 ];

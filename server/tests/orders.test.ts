@@ -23,6 +23,7 @@ describe('POST /api/orders/:templateId (demo checkout)', () => {
     expect(res.body.data).toMatchObject({
       payment: 'demo',
       price_inr: 2499,
+      discount_inr: 1500,
       gst_inr: 450,
       total_inr: 2949,
       template: { slug: 'pulse-analytics', price_inr: 2499, is_free: false },
@@ -36,7 +37,12 @@ describe('POST /api/orders/:templateId (demo checkout)', () => {
       .post(`/api/orders/${await idOf('launchpad-waitlist')}`)
       .set(authHeader(token));
     expect(res.status).toBe(201);
-    expect(res.body.data).toMatchObject({ price_inr: 0, gst_inr: 0, total_inr: 0 });
+    expect(res.body.data).toMatchObject({
+      price_inr: 0,
+      discount_inr: 0,
+      gst_inr: 0,
+      total_inr: 0,
+    });
   });
 
   it('is idempotent: buying again returns the same order with 200', async () => {

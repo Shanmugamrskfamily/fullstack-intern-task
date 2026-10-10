@@ -9,6 +9,8 @@ export interface Order {
   template: Types.ObjectId;
   order_number: string;
   price_inr: number;
+  /** Launch-offer saving against the list price (0 without an offer). */
+  discount_inr: number;
   gst_inr: number;
   total_inr: number;
   created_at: Date;
@@ -20,6 +22,7 @@ const orderSchema = new Schema<Order>(
     template: { type: Schema.Types.ObjectId, ref: 'Template', required: true },
     order_number: { type: String, required: true, unique: true, match: /^LY-[A-F0-9]{8}$/ },
     price_inr: { type: Number, required: true, min: 0 },
+    discount_inr: { type: Number, default: 0, min: 0 },
     gst_inr: { type: Number, required: true, min: 0 },
     total_inr: { type: Number, required: true, min: 0 },
   },

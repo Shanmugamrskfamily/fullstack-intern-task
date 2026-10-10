@@ -3,7 +3,11 @@ import type { Types } from 'mongoose';
 import { ApiError } from '../../utils/api-error.js';
 import { isDuplicateKeyError } from '../../utils/mongo.js';
 import { type Template, TemplateModel } from '../templates/template.model.js';
-import { type PublicTemplate, toPublicTemplate } from '../templates/template.serializer.js';
+import {
+  type PublicTemplate,
+  offerFor,
+  toPublicTemplate,
+} from '../templates/template.serializer.js';
 import { type Order, OrderModel } from './order.model.js';
 
 /** GST on digital goods in India. */
@@ -14,6 +18,7 @@ export interface PublicOrder {
   order_number: string;
   payment: 'demo';
   price_inr: number;
+  discount_inr: number;
   gst_inr: number;
   total_inr: number;
   purchased_at: string;
@@ -23,10 +28,19 @@ export interface PublicOrder {
 type LeanTemplate = Template & { _id: Types.ObjectId | string };
 type LeanOrder = Order & { _id: Types.ObjectId | string };
 
-/** The price always comes from the database, never from the client. */
-export function priceBreakdown(priceInr: number) {
+/**
+ * The price always comes from the database, never from the client. GST applies to the
+ * discounted price; the discount is recorded so receipts can show the saving.
+ */
+export function priceBreakdown(priceInr: number, originalPriceInr?: number | null) {
+  const { original_price_inr: original } = offerFor(priceInr, originalPriceInr);
   const gst = Math.round(priceInr * GST_RATE);
-  return { price_inr: priceInr, gst_inr: gst, total_inr: priceInr + gst };
+  return {
+    price_inr: priceInr,
+    discount_inr: original ? original - priceInr : 0,
+    gst_inr: gst,
+    total_inr: priceInr + gst,
+  };
 }
 
 const newOrderNumber = () => `LY-${randomBytes(4).toString('hex').toUpperCase()}`;
@@ -36,6 +50,7 @@ const toPublicOrder = (order: LeanOrder, template: LeanTemplate): PublicOrder =>
   order_number: order.order_number,
   payment: 'demo',
   price_inr: order.price_inr,
+  discount_inr: order.discount_inr ?? 0,
   gst_inr: order.gst_inr,
   total_inr: order.total_inr,
   purchased_at: new Date(order.created_at).toISOString(),
@@ -62,7 +77,7 @@ export async function purchaseTemplate(userId: string, templateId: string) {
       user: userId,
       template: templateId,
       order_number: newOrderNumber(),
-      ...priceBreakdown(template.price_inr ?? 0),
+      ...priceBreakdown(template.price_inr ?? 0, template.original_price_inr),
     });
     return { created: true, order: toPublicOrder(order.toObject() as LeanOrder, template) };
   } catch (error) {
