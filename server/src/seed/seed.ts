@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { BCRYPT_ROUNDS } from '../modules/auth/auth.service.js';
 import { FavoriteModel } from '../modules/favorites/favorite.model.js';
 import { addFavorite } from '../modules/favorites/favorite.service.js';
+import { OrderModel } from '../modules/orders/order.model.js';
+import { purchaseTemplate } from '../modules/orders/order.service.js';
 import { TemplateModel } from '../modules/templates/template.model.js';
 import { UserModel } from '../modules/users/user.model.js';
 import { logger } from '../utils/logger.js';
@@ -34,6 +36,7 @@ export async function seedTemplates(): Promise<number> {
             category: t.category,
             features: t.features,
             pages: t.pages,
+            price_inr: t.priceInr,
             updated_at: now,
           },
           $setOnInsert: {
@@ -101,10 +104,22 @@ export async function syncFavoriteCounts(): Promise<void> {
   );
 }
 
+/** The demo account owns one paid and one free template, so My library is not empty. */
+const DEMO_LIBRARY = ['folio-studio', 'launchpad-waitlist'];
+
+async function seedDemoLibrary(userId: string) {
+  if (await OrderModel.exists({ user: userId })) return;
+  const templates = await TemplateModel.find({ slug: mongoose.trusted({ $in: DEMO_LIBRARY }) })
+    .select('_id')
+    .lean();
+  for (const template of templates) await purchaseTemplate(userId, String(template._id));
+}
+
 export async function ensureSeedData(): Promise<void> {
   const inserted = await seedTemplates();
   const { user, created } = await seedDemoUser();
   if (created) await seedDemoFavorites(user.id);
+  await seedDemoLibrary(user.id);
   await syncFavoriteCounts();
   logger.info(
     { templates: SEED_TEMPLATES.length, newTemplates: inserted, demoUserCreated: created },

@@ -14,6 +14,8 @@ export interface PublicTemplate {
   features: string[];
   pages: string[];
   favorites_count: number;
+  price_inr: number;
+  is_free: boolean;
   created_at: string;
 }
 
@@ -37,5 +39,7 @@ export const toPublicTemplate = (template: TemplateLike): PublicTemplate => ({
   features: template.features ?? [],
   pages: template.pages ?? [],
   favorites_count: template.favorites_count ?? 0,
+  price_inr: template.price_inr ?? 0,
+  is_free: (template.price_inr ?? 0) === 0,
   created_at: new Date(template.created_at).toISOString(),
 });

@@ -3,7 +3,8 @@ import { objectIdSchema } from '../../utils/mongo.js';
 import { cleanText } from '../../utils/text.js';
 import { CATEGORIES, findCategory } from './categories.js';
 
-export const SORT_OPTIONS = ['popular', 'newest', 'name'] as const;
+export const SORT_OPTIONS = ['popular', 'newest', 'name', 'price_asc', 'price_desc'] as const;
+export const PRICE_FILTERS = ['free', 'paid'] as const;
 
 /** An empty query value (`?search=`) means "not provided". */
 const optional = <T extends z.ZodType>(schema: T) =>
@@ -24,6 +25,7 @@ export const listTemplatesQuerySchema = z.strictObject({
       })
       .transform((value) => findCategory(value)!.label),
   ),
+  price: optional(z.enum(PRICE_FILTERS, `Price must be one of: ${PRICE_FILTERS.join(', ')}`)),
   sort: optional(z.enum(SORT_OPTIONS, `Sort must be one of: ${SORT_OPTIONS.join(', ')}`)).default(
     'popular',
   ),
