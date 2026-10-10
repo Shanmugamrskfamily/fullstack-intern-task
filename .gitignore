@@ -28,3 +28,6 @@ Thumbs.db
 .vercel/
 .cache/
 playwright-report/
+
+# Local editor/agent config
+.claude/

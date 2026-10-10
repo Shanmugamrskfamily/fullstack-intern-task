@@ -1,0 +1,397 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* Class-based dark mode: `.dark` on <html>, set by ThemeProvider (light is the default). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ *
+ * Design tokens: Soft UI Evolution (all text pairs verified ≥ 4.5:1)  *
+ * ------------------------------------------------------------------ */
+:root {
+  --bg: #e7ecf3;
+  --surface: #ecf0f6;
+  --surface-hi: #f3f6fa;
+  --inset: #e0e6ee;
+  --text: #1b2433;
+  --muted: #4f5d73;
+  --subtle: #5a6779;
+  --edge: rgb(255 255 255 / 0.75);
+  --line: rgb(148 163 184 / 0.28);
+  --shadow-dark: rgb(150 164 186 / 0.55);
+  --shadow-light: rgb(255 255 255 / 0.95);
+  --primary: #4f46e5;
+  --primary-hi: #5b54ea;
+  --on-primary: #ffffff;
+  --primary-text: #4338ca;
+  --primary-soft: rgb(79 70 229 / 0.1);
+  --rose: #e11d48;
+  --rose-text: #be123c;
+  --rose-soft: rgb(225 29 72 / 0.1);
+  --success: #047857;
+  --success-soft: rgb(4 120 87 / 0.1);
+  --scrim: rgb(23 30 43 / 0.45);
+  --skeleton: #d3dbe6;
+  --skeleton-hi: #e9eef5;
+  --ring: rgb(99 102 241 / 0.6);
+}
+
+.dark {
+  --bg: #161b24;
+  --surface: #1b212c;
+  --surface-hi: #202734;
+  --inset: #12161e;
+  --text: #e6ebf3;
+  --muted: #a4b0c3;
+  --subtle: #8b97ac;
+  --edge: rgb(255 255 255 / 0.05);
+  --line: rgb(148 163 184 / 0.16);
+  --shadow-dark: rgb(0 0 0 / 0.62);
+  --shadow-light: rgb(255 255 255 / 0.045);
+  --primary: #4f46e5;
+  --primary-hi: #5b54ea;
+  --on-primary: #ffffff;
+  --primary-text: #a5b4fc;
+  --primary-soft: rgb(129 140 248 / 0.14);
+  --rose: #fb7185;
+  --rose-text: #fda4af;
+  --rose-soft: rgb(251 113 133 / 0.14);
+  --success: #34d399;
+  --success-soft: rgb(52 211 153 / 0.12);
+  --scrim: rgb(0 0 0 / 0.6);
+  --skeleton: #20262f;
+  --skeleton-hi: #29303b;
+  --ring: rgb(129 140 248 / 0.7);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hi: var(--surface-hi);
+  --color-inset: var(--inset);
+  --color-foreground: var(--text);
+  --color-muted-foreground: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-hi: var(--primary-hi);
+  --color-primary-foreground: var(--on-primary);
+  --color-primary-text: var(--primary-text);
+  --color-primary-soft: var(--primary-soft);
+  --color-rose: var(--rose);
+  --color-rose-text: var(--rose-text);
+  --color-rose-soft: var(--rose-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-scrim: var(--scrim);
+  --color-ring: var(--ring);
+
+  --font-sans:
+    'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-soft: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-heart-pop: heart-pop 320ms var(--ease-spring);
+  --animate-card-in: card-in 360ms var(--ease-out-soft) both;
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-indeterminate: indeterminate 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  --animate-slide-up: slide-up 300ms var(--ease-out-soft) both;
+  --animate-slide-down: slide-down 150ms var(--ease-in-soft) both;
+
+  @keyframes heart-pop {
+    0% {
+      transform: scale(1);
+    }
+    45% {
+      transform: scale(1.3);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 150% 0;
+    }
+    to {
+      background-position: -50% 0;
+    }
+  }
+  @keyframes indeterminate {
+    0% {
+      left: -40%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes slide-down {
+    to {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Soft UI depth utilities (one consistent elevation scale)            *
+ * ------------------------------------------------------------------ */
+@utility soft-raised {
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
+  box-shadow:
+    6px 6px 14px var(--shadow-dark),
+    -6px -6px 14px var(--shadow-light);
+}
+@utility soft-raised-sm {
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
+  box-shadow:
+    3px 3px 8px var(--shadow-dark),
+    -3px -3px 8px var(--shadow-light);
+}
+@utility soft-raised-lg {
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
+  box-shadow:
+    16px 16px 36px var(--shadow-dark),
+    -12px -12px 28px var(--shadow-light);
+}
+@utility soft-lifted {
+  box-shadow:
+    14px 16px 30px var(--shadow-dark),
+    -8px -8px 20px var(--shadow-light),
+    0 0 0 2px rgb(99 102 241 / 0.35);
+}
+@utility soft-pressed {
+  background-color: var(--surface);
+  border: 1px solid transparent;
+  box-shadow:
+    inset 3px 3px 7px var(--shadow-dark),
+    inset -3px -3px 7px var(--shadow-light);
+}
+@utility soft-inset {
+  background-color: var(--inset);
+  box-shadow:
+    inset 4px 4px 9px var(--shadow-dark),
+    inset -4px -4px 9px var(--shadow-light);
+}
+@utility skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton) 0%,
+    var(--skeleton-hi) 45%,
+    var(--skeleton) 90%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+@utility text-gradient {
+  background: linear-gradient(92deg, #4f46e5 10%, #c026d3 60%, #e11d48 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    min-height: 100dvh;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .dark .text-gradient {
+    background-image: linear-gradient(92deg, #a5b4fc 0%, #f0abfc 55%, #fda4af 100%);
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 3px;
+  }
+  button,
+  a,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+  button:not(:disabled),
+  [role='button'] {
+    cursor: pointer;
+  }
+  ::selection {
+    background: rgb(99 102 241 / 0.25);
+  }
+  input[type='search']::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
+/* The cookie notice steps aside while a dialog is open (Radix locks body scroll). */
+body[data-scroll-locked] [data-cookie-notice] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Brand loader: tiles build the layout, then the heart beats (1.8 s)  *
+ * ------------------------------------------------------------------ */
+.brand-loader .t1,
+.brand-loader .t2,
+.brand-loader .t3 {
+  transform-box: fill-box;
+  animation-duration: 1.8s;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.brand-loader .t1 {
+  transform-origin: 50% 100%;
+  animation-name: ly-t1;
+}
+.brand-loader .t2 {
+  transform-origin: 0% 50%;
+  animation-name: ly-t2;
+}
+.brand-loader .t3 {
+  transform-origin: 50% 50%;
+  animation-name: ly-t3;
+}
+@keyframes ly-t1 {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  22% {
+    transform: scaleY(1.06);
+  }
+  30% {
+    transform: scaleY(1);
+  }
+  80% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  94%,
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+@keyframes ly-t2 {
+  0%,
+  14% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  36% {
+    transform: scaleX(1.06);
+  }
+  44% {
+    transform: scaleX(1);
+  }
+  80% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  94%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+@keyframes ly-t3 {
+  0%,
+  38% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  52% {
+    transform: scale(1.18);
+  }
+  60% {
+    transform: scale(1);
+  }
+  66% {
+    transform: scale(1.1);
+  }
+  72% {
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  94%,
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+@keyframes loader-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Reduced motion: movement becomes opacity-only or none               *
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .brand-loader .t1,
+  .brand-loader .t2,
+  .brand-loader .t3 {
+    animation: none !important;
+  }
+  .brand-loader {
+    animation: loader-pulse 1.6s ease-in-out infinite !important;
+    animation-duration: 1.6s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
