@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { openApiDocument } from '../src/docs/openapi.js';
-import { SORT_OPTIONS } from '../src/modules/templates/template.schemas.js';
+import { PRICE_FILTERS, SORT_OPTIONS } from '../src/modules/templates/template.schemas.js';
 import { anyTemplateId, api, authHeader, registerUser } from './helpers.js';
 
 type Json = Record<string, unknown>;
@@ -19,6 +19,8 @@ const API_ROUTES = [
   'GET /favorites',
   'POST /favorites/{templateId}',
   'DELETE /favorites/{templateId}',
+  'GET /orders',
+  'POST /orders/{templateId}',
 ];
 
 const PROTECTED_ROUTES = [
@@ -26,6 +28,8 @@ const PROTECTED_ROUTES = [
   'GET /favorites',
   'POST /favorites/{templateId}',
   'DELETE /favorites/{templateId}',
+  'GET /orders',
+  'POST /orders/{templateId}',
 ];
 
 interface Operation {
@@ -173,6 +177,15 @@ describe('OpenAPI document', () => {
     }
   });
 
+  it('offers exactly the price filters the API accepts', async () => {
+    const price = openApiDocument.components?.parameters?.Price as { schema: { enum: string[] } };
+    expect(price.schema.enum).toEqual([...PRICE_FILTERS]);
+
+    for (const value of price.schema.enum) {
+      await api().get(`/api/templates?price=${value}`).expect(200);
+    }
+  });
+
   it('only contains references that resolve', () => {
     const refs = collectRefs(openApiDocument);
 
@@ -226,6 +239,17 @@ describe('OpenAPI schemas match real responses', () => {
     expect(Object.keys(res.body.data).sort()).toEqual(
       [...requiredOf('Template'), ...extra.required].sort(),
     );
+  });
+
+  it('Order lists exactly the fields of a demo purchase', async () => {
+    const { token } = await registerUser();
+    const res = await api()
+      .post(`/api/orders/${await anyTemplateId()}`)
+      .set(authHeader(token))
+      .expect(201);
+
+    expect(Object.keys(res.body.data).sort()).toEqual(requiredOf('Order'));
+    expect(Object.keys(res.body.data.template).sort()).toEqual(requiredOf('Template'));
   });
 
   it('Error lists every error code the API returns', async () => {
