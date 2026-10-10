@@ -6,7 +6,7 @@
 
 A full-stack template store: browse, search and filter SaaS templates priced in INR, keep a shelf of favourites, and buy or claim templates into your own library through a demo checkout.
 
-**[Live app](https://layora-template-store.vercel.app)** · **[Live API](https://layora-api.onrender.com/api/health)** · **[API docs (Swagger)](https://layora-api.onrender.com/api/docs)**
+**[Live app 🌐](https://layora-template-store.vercel.app)** · **[Video Demo🎞️](https://youtu.be/1rY-ScTFrE0?si=GN3yYniXvjg7Eojo)** · **[Live API](https://layora-api.onrender.com/api/health)** · **[API docs (Swagger)](https://layora-api.onrender.com/api/docs)**
 
 [![CI](https://github.com/Shanmugamrskfamily/fullstack-intern-task/actions/workflows/ci.yml/badge.svg)](https://github.com/Shanmugamrskfamily/fullstack-intern-task/actions/workflows/ci.yml)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
