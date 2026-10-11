@@ -118,8 +118,6 @@ A full-stack template store: browse, search and filter SaaS templates priced in 
 
 ## Architecture
 
-## Architecture
-
 ```mermaid
 flowchart LR
   subgraph Browser
